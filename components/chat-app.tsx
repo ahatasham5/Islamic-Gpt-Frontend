@@ -1,18 +1,17 @@
-"use client"
-
 import { type ChangeEvent, type FormEvent, useMemo, useState } from "react"
-import { useAuth } from "@/hooks/use-auth"
+import { useRouter } from "next/router"
 import { useBooks } from "@/hooks/use-books"
 import { useChat } from "@/hooks/use-chat"
 import { useHealth } from "@/hooks/use-health"
+import { useAuthContext } from "@/lib/auth-context"
 import type { DraftConversation, ViewMode } from "@/lib/app-types"
 import { createId } from "@/lib/format"
 import type { BookInfo, Source } from "@/lib/types"
-import { LoginScreen } from "@/components/login-screen"
 import { ChatSidebar } from "@/components/chat-sidebar"
 import { ChatMain } from "@/components/chat-main"
 import { SourcesPanel } from "@/components/sources-panel"
 import { BookManager } from "@/components/book-manager"
+import { CreateMuftiPanel } from "@/components/create-mufti-panel"
 import { ThinkingModal } from "@/components/thinking-modal"
 import { Sheet, SheetContent } from "@/components/ui/sheet"
 
@@ -25,9 +24,10 @@ const initialConversations: DraftConversation[] = [
   },
 ]
 
-export default function Home() {
-  const auth = useAuth()
-  const session = auth.session
+export function ChatApp() {
+  const { session, logout } = useAuthContext()
+  const router = useRouter()
+
   const canManageBooks = session?.user.role === "super_admin"
   const health = useHealth(Boolean(session))
   const chat = useChat()
@@ -45,25 +45,21 @@ export default function Home() {
   const [mobileSourcesOpen, setMobileSourcesOpen] = useState(false)
 
   const activeConversation = useMemo(
-    () => conversations.find((conversation) => conversation.id === activeConversationId) ?? conversations[0],
+    () => conversations.find((c) => c.id === activeConversationId) ?? conversations[0],
     [activeConversationId, conversations],
   )
+
   const selectedTurn = useMemo(() => {
     const allTurns = activeConversation?.turns ?? []
     if (selectedTurnId) {
-      return allTurns.find((turn) => turn.id === selectedTurnId) ?? allTurns.at(-1) ?? null
+      return allTurns.find((t) => t.id === selectedTurnId) ?? allTurns.at(-1) ?? null
     }
-
     return allTurns.at(-1) ?? null
   }, [activeConversation, selectedTurnId])
 
   function handleLogout() {
-    auth.logout()
-    setViewMode("chat")
-    setThinkingSource(null)
-    setPendingTurn(null)
-    setMobileNavOpen(false)
-    setMobileSourcesOpen(false)
+    logout()
+    router.replace("/login")
   }
 
   function handleNewChat() {
@@ -93,6 +89,11 @@ export default function Home() {
 
   function handleOpenBooks() {
     setViewMode("books")
+    setMobileNavOpen(false)
+  }
+
+  function handleOpenMuftiManagement() {
+    setViewMode("mufti-management")
     setMobileNavOpen(false)
   }
 
@@ -127,7 +128,6 @@ export default function Home() {
       setConversations((current) =>
         current.map((conversation) => {
           if (conversation.id !== targetConversationId) return conversation
-
           return {
             ...conversation,
             title: conversation.turns.length === 0 ? trimmedQuery.slice(0, 44) : conversation.title,
@@ -175,29 +175,7 @@ export default function Home() {
     await bookState.deleteBook(book)
   }
 
-  if (auth.isRestoring) {
-    return (
-      <main className="grid min-h-dvh place-items-center bg-background text-sm text-muted-foreground">
-        Loading...
-      </main>
-    )
-  }
-
-  if (!session) {
-    return (
-      <LoginScreen
-        apiError={auth.error}
-        isSubmitting={auth.isSubmitting}
-        isVerifying={auth.isVerifying}
-        isResending={auth.isResending}
-        clearError={auth.clearError}
-        onLogin={auth.login}
-        onSignup={auth.signup}
-        onVerifyOtp={auth.verifyOtp}
-        onResendOtp={auth.resendOtp}
-      />
-    )
-  }
+  if (!session) return null
 
   const sidebar = (onCloseMobile?: () => void) => (
     <ChatSidebar
@@ -209,6 +187,7 @@ export default function Home() {
       onNewChat={handleNewChat}
       onSelectConversation={handleSelectConversation}
       onOpenBooks={handleOpenBooks}
+      onOpenMuftiManagement={handleOpenMuftiManagement}
       onLogout={handleLogout}
       onCloseMobile={onCloseMobile}
     />
@@ -216,7 +195,9 @@ export default function Home() {
 
   return (
     <div className="grid h-dvh min-h-0 grid-cols-1 overflow-hidden lg:grid-cols-[280px_minmax(0,1fr)] xl:grid-cols-[280px_minmax(0,1fr)_340px]">
-      <aside className="hidden min-h-0 overflow-hidden border-r border-sidebar-border lg:block">{sidebar()}</aside>
+      <aside className="hidden min-h-0 overflow-hidden border-r border-sidebar-border lg:block">
+        {sidebar()}
+      </aside>
 
       <Sheet open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
         <SheetContent side="left" className="h-dvh w-[300px] overflow-hidden p-0">
@@ -235,13 +216,17 @@ export default function Home() {
           onDelete={handleDelete}
           onOpenMobileMenu={() => setMobileNavOpen(true)}
         />
+      ) : viewMode === "mufti-management" && session.user.role === "super_admin" ? (
+        <CreateMuftiPanel onOpenMobileMenu={() => setMobileNavOpen(true)} />
       ) : (
         <ChatMain
           conversation={activeConversation}
           selectedTurnId={selectedTurnId}
           streamingTurnId={streamingTurnId}
           isAsking={chat.isAsking}
-          pendingQuestion={pendingTurn?.conversationId === activeConversationId ? pendingTurn.question : ""}
+          pendingQuestion={
+            pendingTurn?.conversationId === activeConversationId ? pendingTurn.question : ""
+          }
           chatError={chat.chatError}
           query={query}
           serverState={health.serverState}
@@ -262,7 +247,6 @@ export default function Home() {
           <SourcesPanel selectedTurn={selectedTurn} onViewThinking={setThinkingSource} />
         </aside>
       ) : null}
-
       <Sheet open={mobileSourcesOpen} onOpenChange={setMobileSourcesOpen}>
         <SheetContent side="right" className="h-dvh w-[340px] max-w-[88vw] overflow-hidden p-0">
           <SourcesPanel selectedTurn={selectedTurn} onViewThinking={setThinkingSource} />

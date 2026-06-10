@@ -1,9 +1,7 @@
-"use client"
-
 import { BrandMark } from "@/components/brand-mark"
 import { cn } from "@/lib/utils"
 import type { AuthSession, DraftConversation } from "@/lib/app-types"
-import { BookMarked, LogOut, MessageSquarePlus, MessagesSquare, X } from "lucide-react"
+import { BookMarked, LogOut, MessageSquarePlus, MessagesSquare, UserPlus, X } from "lucide-react"
 
 function getRoleLabel(role: AuthSession["user"]["role"]) {
   if (role === "super_admin") return "Super admin"
@@ -21,17 +19,19 @@ export function ChatSidebar({
   onNewChat,
   onSelectConversation,
   onOpenBooks,
+  onOpenMuftiManagement,
   onLogout,
   onCloseMobile,
 }: {
   session: AuthSession
   conversations: DraftConversation[]
   activeConversationId: string
-  viewMode: "chat" | "books"
+  viewMode: "chat" | "books" | "mufti-management"
   canManageBooks: boolean
   onNewChat: () => void
   onSelectConversation: (id: string) => void
   onOpenBooks: () => void
+  onOpenMuftiManagement: () => void
   onLogout: () => void
   onCloseMobile?: () => void
 }) {
@@ -127,6 +127,22 @@ export function ChatSidebar({
           >
             <BookMarked className="size-5 text-primary" />
             কিতাব ম্যানেজ করুন
+          </button>
+        ) : null}
+
+        {session.user.role === "super_admin" ? (
+          <button
+            type="button"
+            onClick={onOpenMuftiManagement}
+            className={cn(
+              "flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium transition",
+              viewMode === "mufti-management"
+                ? "bg-accent text-accent-foreground ring-1 ring-primary/30"
+                : "text-foreground hover:bg-sidebar-accent",
+            )}
+          >
+            <UserPlus className="size-5 text-primary" />
+            Create Mufti
           </button>
         ) : null}
 

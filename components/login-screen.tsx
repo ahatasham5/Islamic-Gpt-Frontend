@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, type FormEvent } from "react"
 import { BrandMark } from "@/components/brand-mark"
 import { Button } from "@/components/ui/button"
@@ -301,7 +299,9 @@ export function LoginScreen({
                 />
 
                 <Button type="submit" size="lg" disabled={isSubmitting} className="h-11 w-full rounded-xl text-base">
-                  {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : null}
+                  <span className="inline-flex size-4 items-center justify-center">
+                    {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : null}
+                  </span>
                   Sign in
                 </Button>
               </form>
@@ -344,7 +344,9 @@ export function LoginScreen({
                 />
 
                 <Button type="submit" size="lg" disabled={isSubmitting} className="h-11 w-full rounded-xl text-base">
-                  {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : null}
+                  <span className="inline-flex size-4 items-center justify-center">
+                    {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : null}
+                  </span>
                   Send OTP
                 </Button>
               </form>
@@ -378,7 +380,9 @@ export function LoginScreen({
                 />
 
                 <Button type="submit" size="lg" disabled={isVerifying} className="h-11 w-full rounded-xl text-base">
-                  {isVerifying ? <Loader2 className="size-4 animate-spin" /> : null}
+                  <span className="inline-flex size-4 items-center justify-center">
+                    {isVerifying ? <Loader2 className="size-4 animate-spin" /> : null}
+                  </span>
                   Verify account
                 </Button>
                 <Button
@@ -388,7 +392,9 @@ export function LoginScreen({
                   onClick={handleResendOtp}
                   className="h-10 w-full rounded-xl"
                 >
-                  {isResending ? <Loader2 className="size-4 animate-spin" /> : null}
+                  <span className="inline-flex size-4 items-center justify-center">
+                    {isResending ? <Loader2 className="size-4 animate-spin" /> : null}
+                  </span>
                   Resend OTP
                 </Button>
               </form>

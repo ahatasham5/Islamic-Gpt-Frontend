@@ -1,5 +1,3 @@
-"use client"
-
 import { useEffect, useRef, type FormEvent } from "react"
 import { BrandMark } from "@/components/brand-mark"
 import { StreamingAnswer } from "@/components/streaming-answer"

@@ -1,5 +1,3 @@
-"use client"
-
 import { useCallback, useEffect, useState } from "react"
 import { booksApi } from "@/lib/api/books"
 import { getApiErrorMessage } from "@/lib/http"

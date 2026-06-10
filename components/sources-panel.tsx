@@ -1,5 +1,3 @@
-"use client"
-
 import { Badge } from "@/components/ui/badge"
 import { percent } from "@/lib/format"
 import { type ChatTurn, relevanceLabels } from "@/lib/app-types"

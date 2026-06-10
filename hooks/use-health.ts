@@ -1,5 +1,3 @@
-"use client"
-
 import { useCallback, useEffect, useState } from "react"
 import { healthApi } from "@/lib/api/health"
 import type { ServerState } from "@/lib/app-types"
