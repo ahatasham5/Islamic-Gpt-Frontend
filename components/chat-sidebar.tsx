@@ -2,8 +2,15 @@
 
 import { BrandMark } from "@/components/brand-mark"
 import { cn } from "@/lib/utils"
-import type { DraftConversation, MockSession } from "@/lib/app-types"
+import type { AuthSession, DraftConversation } from "@/lib/app-types"
 import { BookMarked, LogOut, MessageSquarePlus, MessagesSquare, X } from "lucide-react"
+
+function getRoleLabel(role: AuthSession["user"]["role"]) {
+  if (role === "super_admin") return "Super admin"
+  if (role === "mufti") return "Mufti"
+
+  return "User"
+}
 
 export function ChatSidebar({
   session,
@@ -17,7 +24,7 @@ export function ChatSidebar({
   onLogout,
   onCloseMobile,
 }: {
-  session: MockSession
+  session: AuthSession
   conversations: DraftConversation[]
   activeConversationId: string
   viewMode: "chat" | "books"
@@ -37,7 +44,7 @@ export function ChatSidebar({
           <div className="min-w-0 leading-tight">
             <p className="truncate font-heading text-sm font-bold">ফতোয়া চ্যাট বট</p>
             <p className="truncate text-xs text-muted-foreground">
-              {session.role === "book_manager" ? "Book manager" : "ব্যবহারকারী"}
+              {getRoleLabel(session.user.role)}
             </p>
           </div>
         </div>
@@ -125,10 +132,10 @@ export function ChatSidebar({
 
         <div className="flex items-center gap-2.5 rounded-xl px-2 py-1.5">
           <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-accent font-semibold text-accent-foreground">
-            {session.name.slice(0, 1).toUpperCase()}
+            {session.user.name.slice(0, 1).toUpperCase()}
           </span>
           <span className="min-w-0 flex-1 truncate text-sm font-medium">
-            {session.name}
+            {session.user.name}
           </span>
           <button
             type="button"

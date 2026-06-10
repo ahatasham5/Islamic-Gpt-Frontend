@@ -1,13 +1,37 @@
-import axios from "axios";
+import axios, { type AxiosRequestConfig } from "axios";
 
 export const api = axios.create({
   baseURL: "/api/backend",
   timeout: 300000
 });
 
+let authToken: string | null = null;
+
+export function setAuthToken(token: string | null) {
+  authToken = token;
+}
+
+api.interceptors.request.use((config) => {
+  if (authToken) {
+    config.headers.Authorization = `Bearer ${authToken}`;
+  } else {
+    delete config.headers.Authorization;
+  }
+
+  return config;
+});
+
+export async function apiRequest<T>(config: AxiosRequestConfig) {
+  const response = await api.request<T>(config);
+
+  return response.data;
+}
+
 export function getApiErrorMessage(error: unknown) {
   if (axios.isAxiosError(error)) {
-    const detail = error.response?.data?.detail;
+    const payload = error.response?.data;
+    const detail = payload?.detail;
+    const message = payload?.message;
 
     if (typeof detail === "string") {
       return detail;
@@ -18,6 +42,14 @@ export function getApiErrorMessage(error: unknown) {
         .map((item) => item?.msg)
         .filter(Boolean)
         .join(" ");
+    }
+
+    if (typeof message === "string") {
+      return message;
+    }
+
+    if (typeof detail === "object" && detail !== null) {
+      return JSON.stringify(detail);
     }
 
     return error.message;

@@ -3,6 +3,49 @@ export type HealthResponse = {
   message: string;
 };
 
+export type UserRole = "super_admin" | "mufti" | "user";
+
+export type UserCreate = {
+  name: string;
+  email: string;
+  password: string;
+};
+
+export type UserLogin = {
+  email: string;
+  password: string;
+};
+
+export type VerifyOTP = {
+  email: string;
+  otp: string;
+};
+
+export type ResendOTP = {
+  email: string;
+};
+
+export type UserResponse = {
+  id: number;
+  name: string;
+  email: string;
+  role: UserRole;
+  is_active: boolean;
+  is_verified: boolean;
+};
+
+export type Token = {
+  access_token: string;
+  token_type: string;
+  user: UserResponse;
+};
+
+export type AuthSession = {
+  accessToken: string;
+  tokenType: string;
+  user: UserResponse;
+};
+
 export type BookInfo = {
   book_id: string;
   file_name: string;

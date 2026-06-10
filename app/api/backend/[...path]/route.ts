@@ -44,7 +44,12 @@ async function proxyRequest(request: NextRequest, context: RouteContext) {
 
   const headers = new Headers();
   const contentType = request.headers.get("content-type");
+  const authorization = request.headers.get("authorization");
   let body: BodyInit | undefined;
+
+  if (authorization) {
+    headers.set("authorization", authorization);
+  }
 
   if (!["GET", "HEAD"].includes(request.method)) {
     if (contentType?.includes("multipart/form-data")) {

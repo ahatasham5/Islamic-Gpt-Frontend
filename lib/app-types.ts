@@ -1,13 +1,8 @@
-import type { ChatResponse } from "@/lib/types"
+import type { AuthSession, ChatResponse } from "@/lib/types"
 
-export type Role = "reader" | "book_manager"
 export type ServerState = "checking" | "online" | "offline"
 export type ViewMode = "chat" | "books"
-
-export type MockSession = {
-  name: string
-  role: Role
-}
+export type { AuthSession }
 
 export type ChatTurn = {
   id: string

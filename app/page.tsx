@@ -1,17 +1,13 @@
 "use client"
 
-import { type ChangeEvent, type FormEvent, useCallback, useEffect, useMemo, useState } from "react"
-import { api, getApiErrorMessage } from "@/lib/http"
-import type {
-  BookInfo,
-  BookListResponse,
-  BookUploadResponse,
-  ChatResponse,
-  HealthResponse,
-  Source,
-} from "@/lib/types"
-import type { DraftConversation, MockSession, ServerState, ViewMode } from "@/lib/app-types"
+import { type ChangeEvent, type FormEvent, useMemo, useState } from "react"
+import { useAuth } from "@/hooks/use-auth"
+import { useBooks } from "@/hooks/use-books"
+import { useChat } from "@/hooks/use-chat"
+import { useHealth } from "@/hooks/use-health"
+import type { DraftConversation, ViewMode } from "@/lib/app-types"
 import { createId } from "@/lib/format"
+import type { BookInfo, Source } from "@/lib/types"
 import { LoginScreen } from "@/components/login-screen"
 import { ChatSidebar } from "@/components/chat-sidebar"
 import { ChatMain } from "@/components/chat-main"
@@ -23,34 +19,31 @@ import { Sheet, SheetContent } from "@/components/ui/sheet"
 const initialConversations: DraftConversation[] = [
   {
     id: "local-new",
-    title: "নতুন আলোচনা",
+    title: "New conversation",
     turns: [],
     createdAt: new Date().toISOString(),
   },
 ]
 
 export default function Home() {
-  const [session, setSession] = useState<MockSession | null>(null)
-  const [serverState, setServerState] = useState<ServerState>("checking")
-  const [books, setBooks] = useState<BookInfo[]>([])
+  const auth = useAuth()
+  const session = auth.session
+  const canManageBooks = session?.user.role === "super_admin"
+  const health = useHealth(Boolean(session))
+  const chat = useChat()
+  const bookState = useBooks(Boolean(session && canManageBooks))
+
   const [conversations, setConversations] = useState<DraftConversation[]>(initialConversations)
   const [activeConversationId, setActiveConversationId] = useState(initialConversations[0].id)
   const [query, setQuery] = useState("")
-  const [isAsking, setIsAsking] = useState(false)
   const [pendingTurn, setPendingTurn] = useState<{ conversationId: string; question: string } | null>(null)
-  const [chatError, setChatError] = useState("")
   const [viewMode, setViewMode] = useState<ViewMode>("chat")
   const [selectedTurnId, setSelectedTurnId] = useState<string | null>(null)
   const [thinkingSource, setThinkingSource] = useState<Source | null>(null)
   const [streamingTurnId, setStreamingTurnId] = useState<string | null>(null)
-  const [isLoadingBooks, setIsLoadingBooks] = useState(false)
-  const [uploadMessage, setUploadMessage] = useState("")
-  const [isUploading, setIsUploading] = useState(false)
-  const [deletingBookId, setDeletingBookId] = useState<string | null>(null)
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
   const [mobileSourcesOpen, setMobileSourcesOpen] = useState(false)
 
-  const canManageBooks = session?.role === "book_manager"
   const activeConversation = useMemo(
     () => conversations.find((conversation) => conversation.id === activeConversationId) ?? conversations[0],
     [activeConversationId, conversations],
@@ -60,53 +53,23 @@ export default function Home() {
     if (selectedTurnId) {
       return allTurns.find((turn) => turn.id === selectedTurnId) ?? allTurns.at(-1) ?? null
     }
+
     return allTurns.at(-1) ?? null
   }, [activeConversation, selectedTurnId])
 
-  const loadHealth = useCallback(async () => {
-    try {
-      await api.get<HealthResponse>("/health")
-      setServerState("online")
-    } catch {
-      setServerState("offline")
-    }
-  }, [])
-
-  const loadBooks = useCallback(async () => {
-    setIsLoadingBooks(true)
-    try {
-      const response = await api.get<BookListResponse>("/books")
-      setBooks(response.data.books)
-    } catch (error) {
-      setUploadMessage(getApiErrorMessage(error))
-    } finally {
-      setIsLoadingBooks(false)
-    }
-  }, [])
-
-  useEffect(() => {
-    if (!session) return
-    loadHealth()
-    loadBooks()
-  }, [session, loadBooks, loadHealth])
-
-  function handleLogin(next: MockSession) {
-    setSession(next)
-    setViewMode("chat")
-  }
-
   function handleLogout() {
-    setSession(null)
+    auth.logout()
     setViewMode("chat")
     setThinkingSource(null)
     setPendingTurn(null)
     setMobileNavOpen(false)
+    setMobileSourcesOpen(false)
   }
 
   function handleNewChat() {
     const conversation: DraftConversation = {
       id: createId("chat"),
-      title: "নতুন আলোচনা",
+      title: "New conversation",
       turns: [],
       createdAt: new Date().toISOString(),
     }
@@ -135,21 +98,21 @@ export default function Home() {
 
   async function handleAsk(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    setChatError("")
+    chat.setChatError("")
     setThinkingSource(null)
 
     const trimmedQuery = query.trim()
     if (trimmedQuery.length < 5) {
-      setChatError("প্রশ্ন অন্তত ৫ অক্ষরের হতে হবে।")
+      chat.setChatError("Question must be at least 5 characters.")
       return
     }
 
-    setIsAsking(true)
     const targetConversationId = activeConversationId
     setPendingTurn({ conversationId: targetConversationId, question: trimmedQuery })
     setQuery("")
+
     try {
-      const response = await api.post<ChatResponse>("/chat", {
+      const response = await chat.ask({
         query: trimmedQuery,
         book_id: null,
         top_k: 5,
@@ -157,13 +120,14 @@ export default function Home() {
       const turn = {
         id: createId("turn"),
         question: trimmedQuery,
-        response: response.data,
+        response,
         createdAt: new Date().toISOString(),
       }
 
       setConversations((current) =>
         current.map((conversation) => {
           if (conversation.id !== targetConversationId) return conversation
+
           return {
             ...conversation,
             title: conversation.turns.length === 0 ? trimmedQuery.slice(0, 44) : conversation.title,
@@ -173,11 +137,9 @@ export default function Home() {
       )
       setSelectedTurnId(turn.id)
       setStreamingTurnId(turn.id)
-    } catch (error) {
-      setChatError(getApiErrorMessage(error))
+    } catch {
       setQuery(trimmedQuery)
     } finally {
-      setIsAsking(false)
       setPendingTurn(null)
     }
   }
@@ -187,53 +149,54 @@ export default function Home() {
     event.target.value = ""
 
     if (!canManageBooks) {
-      setUploadMessage("এই অ্যাকাউন্টে কিতাব ম্যানেজ করার অনুমতি নেই।")
+      bookState.setUploadMessage("This account does not have permission to manage books.")
       return
     }
     if (!file) return
     if (!file.name.endsWith(".md")) {
-      setUploadMessage("শুধু .md ফাইল আপলোড করা যাবে।")
+      bookState.setUploadMessage("Only .md files can be uploaded.")
       return
     }
 
-    setIsUploading(true)
-    setUploadMessage("")
     const formData = new FormData()
     formData.append("file", file)
-
-    try {
-      const response = await api.post<BookUploadResponse>("/books/upload", formData)
-      setUploadMessage(response.data.message)
-      await loadBooks()
-    } catch (error) {
-      setUploadMessage(getApiErrorMessage(error))
-    } finally {
-      setIsUploading(false)
-    }
+    await bookState.uploadBook(formData)
   }
 
   async function handleDelete(book: BookInfo) {
     if (!canManageBooks) {
-      setUploadMessage("এই অ্যাকাউন্টে কিতাব ম্যানেজ করার অনুমতি নেই।")
+      bookState.setUploadMessage("This account does not have permission to manage books.")
       return
     }
-    const confirmed = window.confirm(`"${book.book_title || book.file_name}" মুছে ফেলবেন?`)
+
+    const confirmed = window.confirm(`Delete "${book.book_title || book.file_name}"?`)
     if (!confirmed) return
 
-    setDeletingBookId(book.book_id)
-    setUploadMessage("")
-    try {
-      await api.delete(`/books/${book.book_id}`)
-      await loadBooks()
-    } catch (error) {
-      setUploadMessage(getApiErrorMessage(error))
-    } finally {
-      setDeletingBookId(null)
-    }
+    await bookState.deleteBook(book)
+  }
+
+  if (auth.isRestoring) {
+    return (
+      <main className="grid min-h-dvh place-items-center bg-background text-sm text-muted-foreground">
+        Loading...
+      </main>
+    )
   }
 
   if (!session) {
-    return <LoginScreen onLogin={handleLogin} />
+    return (
+      <LoginScreen
+        apiError={auth.error}
+        isSubmitting={auth.isSubmitting}
+        isVerifying={auth.isVerifying}
+        isResending={auth.isResending}
+        clearError={auth.clearError}
+        onLogin={auth.login}
+        onSignup={auth.signup}
+        onVerifyOtp={auth.verifyOtp}
+        onResendOtp={auth.resendOtp}
+      />
+    )
   }
 
   const sidebar = (onCloseMobile?: () => void) => (
@@ -242,7 +205,7 @@ export default function Home() {
       conversations={conversations}
       activeConversationId={activeConversationId}
       viewMode={viewMode}
-      canManageBooks={canManageBooks}
+      canManageBooks={Boolean(canManageBooks)}
       onNewChat={handleNewChat}
       onSelectConversation={handleSelectConversation}
       onOpenBooks={handleOpenBooks}
@@ -253,24 +216,21 @@ export default function Home() {
 
   return (
     <div className="grid h-dvh min-h-0 grid-cols-1 overflow-hidden lg:grid-cols-[280px_minmax(0,1fr)] xl:grid-cols-[280px_minmax(0,1fr)_340px]">
-      {/* Desktop sidebar */}
       <aside className="hidden min-h-0 overflow-hidden border-r border-sidebar-border lg:block">{sidebar()}</aside>
 
-      {/* Mobile sidebar */}
       <Sheet open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
         <SheetContent side="left" className="h-dvh w-[300px] overflow-hidden p-0">
           {sidebar(() => setMobileNavOpen(false))}
         </SheetContent>
       </Sheet>
 
-      {/* Main */}
       {viewMode === "books" && canManageBooks ? (
         <BookManager
-          books={books}
-          isLoadingBooks={isLoadingBooks}
-          uploadMessage={uploadMessage}
-          isUploading={isUploading}
-          deletingBookId={deletingBookId}
+          books={bookState.books}
+          isLoadingBooks={bookState.isLoadingBooks}
+          uploadMessage={bookState.uploadMessage}
+          isUploading={bookState.isUploading}
+          deletingBookId={bookState.deletingBookId}
           onUpload={handleUpload}
           onDelete={handleDelete}
           onOpenMobileMenu={() => setMobileNavOpen(true)}
@@ -280,11 +240,11 @@ export default function Home() {
           conversation={activeConversation}
           selectedTurnId={selectedTurnId}
           streamingTurnId={streamingTurnId}
-          isAsking={isAsking}
+          isAsking={chat.isAsking}
           pendingQuestion={pendingTurn?.conversationId === activeConversationId ? pendingTurn.question : ""}
-          chatError={chatError}
+          chatError={chat.chatError}
           query={query}
-          serverState={serverState}
+          serverState={health.serverState}
           onQueryChange={setQuery}
           onSubmit={handleAsk}
           onSelectTurn={(id) => {
@@ -297,14 +257,12 @@ export default function Home() {
         />
       )}
 
-      {/* Desktop sources panel (chat view only) */}
       {viewMode === "chat" ? (
         <aside className="hidden min-h-0 overflow-hidden border-l border-border xl:block">
           <SourcesPanel selectedTurn={selectedTurn} onViewThinking={setThinkingSource} />
         </aside>
       ) : null}
 
-      {/* Mobile/tablet sources */}
       <Sheet open={mobileSourcesOpen} onOpenChange={setMobileSourcesOpen}>
         <SheetContent side="right" className="h-dvh w-[340px] max-w-[88vw] overflow-hidden p-0">
           <SourcesPanel selectedTurn={selectedTurn} onViewThinking={setThinkingSource} />
