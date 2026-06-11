@@ -11,7 +11,7 @@ import { ChatSidebar } from "@/components/chat-sidebar"
 import { ChatMain } from "@/components/chat-main"
 import { SourcesPanel } from "@/components/sources-panel"
 import { BookManager } from "@/components/book-manager"
-import { CreateMuftiPanel } from "@/components/create-mufti-panel"
+import { CreateMuftiDialog } from "@/components/create-mufti-panel"
 import { ThinkingModal } from "@/components/thinking-modal"
 import { Sheet, SheetContent } from "@/components/ui/sheet"
 
@@ -43,6 +43,7 @@ export function ChatApp() {
   const [streamingTurnId, setStreamingTurnId] = useState<string | null>(null)
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
   const [mobileSourcesOpen, setMobileSourcesOpen] = useState(false)
+  const [isCreateMuftiOpen, setIsCreateMuftiOpen] = useState(false)
 
   const activeConversation = useMemo(
     () => conversations.find((c) => c.id === activeConversationId) ?? conversations[0],
@@ -93,8 +94,8 @@ export function ChatApp() {
   }
 
   function handleOpenMuftiManagement() {
-    setViewMode("mufti-management")
     setMobileNavOpen(false)
+    setIsCreateMuftiOpen(true)
   }
 
   async function handleAsk(event: FormEvent<HTMLFormElement>) {
@@ -188,6 +189,7 @@ export function ChatApp() {
       onSelectConversation={handleSelectConversation}
       onOpenBooks={handleOpenBooks}
       onOpenMuftiManagement={handleOpenMuftiManagement}
+      isCreateMuftiOpen={isCreateMuftiOpen}
       onLogout={handleLogout}
       onCloseMobile={onCloseMobile}
     />
@@ -216,8 +218,6 @@ export function ChatApp() {
           onDelete={handleDelete}
           onOpenMobileMenu={() => setMobileNavOpen(true)}
         />
-      ) : viewMode === "mufti-management" && session.user.role === "super_admin" ? (
-        <CreateMuftiPanel onOpenMobileMenu={() => setMobileNavOpen(true)} />
       ) : (
         <ChatMain
           conversation={activeConversation}
@@ -254,6 +254,9 @@ export function ChatApp() {
       </Sheet>
 
       <ThinkingModal source={thinkingSource} onClose={() => setThinkingSource(null)} />
+      {session.user.role === "super_admin" ? (
+        <CreateMuftiDialog open={isCreateMuftiOpen} onOpenChange={setIsCreateMuftiOpen} />
+      ) : null}
     </div>
   )
 }

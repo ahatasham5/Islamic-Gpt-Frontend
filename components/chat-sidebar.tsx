@@ -20,18 +20,20 @@ export function ChatSidebar({
   onSelectConversation,
   onOpenBooks,
   onOpenMuftiManagement,
+  isCreateMuftiOpen,
   onLogout,
   onCloseMobile,
 }: {
   session: AuthSession
   conversations: DraftConversation[]
   activeConversationId: string
-  viewMode: "chat" | "books" | "mufti-management"
+  viewMode: "chat" | "books"
   canManageBooks: boolean
   onNewChat: () => void
   onSelectConversation: (id: string) => void
   onOpenBooks: () => void
   onOpenMuftiManagement: () => void
+  isCreateMuftiOpen: boolean
   onLogout: () => void
   onCloseMobile?: () => void
 }) {
@@ -136,7 +138,7 @@ export function ChatSidebar({
             onClick={onOpenMuftiManagement}
             className={cn(
               "flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium transition",
-              viewMode === "mufti-management"
+              isCreateMuftiOpen
                 ? "bg-accent text-accent-foreground ring-1 ring-primary/30"
                 : "text-foreground hover:bg-sidebar-accent",
             )}
