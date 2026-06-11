@@ -1,6 +1,7 @@
 import type { AppProps } from "next/app"
 import { Inter, Plus_Jakarta_Sans, Hind_Siliguri, Geist_Mono } from "next/font/google"
 import { AuthProvider } from "@/lib/auth-context"
+import { LanguageProvider } from "@/lib/language-context"
 import "@/app/globals.css"
 
 const inter = Inter({ variable: "--font-inter", subsets: ["latin"], display: "swap" })
@@ -19,9 +20,11 @@ export default function App({ Component, pageProps }: AppProps) {
       suppressHydrationWarning
       className={`${inter.variable} ${jakarta.variable} ${bengali.variable} ${geistMono.variable} bg-background font-sans`}
     >
-      <AuthProvider>
-        <Component {...pageProps} />
-      </AuthProvider>
+      <LanguageProvider>
+        <AuthProvider>
+          <Component {...pageProps} />
+        </AuthProvider>
+      </LanguageProvider>
     </div>
   )
 }

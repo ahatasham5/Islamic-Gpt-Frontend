@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import type { AuthSession } from "@/lib/types"
 import type { LoginFormValues, OtpFormValues, SignupFormValues } from "@/lib/validation/auth"
 import { getValidationMessage, loginSchema, otpSchema, resendOtpSchema, signupSchema } from "@/lib/validation/auth"
+import { useLanguage } from "@/lib/language-context"
 import {
   ArrowLeft,
   BookOpen,
@@ -18,23 +19,80 @@ import {
   User,
 } from "lucide-react"
 
-const highlights = [
-  {
-    icon: MessageCircleQuestion,
-    title: "Ask with clarity",
-    desc: "Submit your question in Bangla or English and follow the cited sources.",
+const translations = {
+  bn: {
+    foundation: "As-Sunnah Foundation",
+    appName: "Islamic GPT",
+    aiAssistant: "এআই চালিত জ্ঞান সহায়ক",
+    trustKnowledge: "বিশ্বাসযোগ্য ইসলামিক জ্ঞান যাচাইকৃত প্রবেশাধিকারে",
+    signInDesc: "প্রশ্ন করতে, রেফারেন্স পর্যালোচনা করতে এবং আপনার আগের কথোপকথন চালিয়ে যেতে সাইন ইন করুন।",
+    highlight1Title: "স্পষ্টভাবে প্রশ্ন করুন",
+    highlight1Desc: "বাংলা বা ইংরেজিতে প্রশ্ন জমা দিন এবং উল্লেখিত সূত্র অনুসরণ করুন।",
+    highlight2Title: "বিশ্বস্ত রেফারেন্স",
+    highlight2Desc: "ইসলামিক জ্ঞান লাইব্রেরির সাথে যুক্ত তথ্যসূত্র থেকে উত্তর প্রদান করা হয়।",
+    highlight3Title: "যাচাইকৃত প্রবেশাধিকার",
+    highlight3Desc: "নতুন অ্যাকাউন্ট ইমেইল ওটিপি দিয়ে সাইন ইন করার আগে যাচাই করা হয়।",
+    signIn: "সাইন ইন",
+    signUp: "সাইন আপ",
+    greeting: "আসসালামু আলাইকুম",
+    createAccount: "আপনার অ্যাকাউন্ট তৈরি করুন",
+    verifyOtp: "ওটিপি যাচাই করুন",
+    useEmailPassword: "আপনার নিবন্ধিত ইমেইল এবং পাসওয়ার্ড ব্যবহার করুন।",
+    enterDetails: "আপনার বিবরণ লিখুন। আমরা আপনার ইমেইলে একটি ৬-সংখ্যার ওটিপি পাঠাব।",
+    otpSent: "আমরা",
+    otpSentEnd: "একটি ওটিপি পাঠিয়েছি।",
+    email: "ইমেইল",
+    password: "পাসওয়ার্ড",
+    name: "নাম",
+    otp: "ওটিপি",
+    emailPlaceholder: "আপনার ইমেইল",
+    passwordPlaceholder: "আপনার পাসওয়ার্ড লিখুন",
+    createPasswordPlaceholder: "একটি পাসওয়ার্ড তৈরি করুন",
+    namePlaceholder: "আপনার পুরো নাম",
+    otpPlaceholder: "৬-সংখ্যার কোড",
+    sendOtp: "ওটিপি পাঠান",
+    verifyAccount: "অ্যাকাউন্ট যাচাই করুন",
+    resendOtp: "পুনরায় ওটিপি পাঠান",
+    backToSignup: "সাইন আপ এ ফিরে যান",
+    copyright: "© {year} As-Sunnah Foundation. All rights reserved.",
   },
-  {
-    icon: BookOpen,
-    title: "Trusted references",
-    desc: "Answers are grounded in the connected Islamic knowledge library.",
+  en: {
+    foundation: "As-Sunnah Foundation",
+    appName: "Islamic GPT",
+    aiAssistant: "AI-Powered Knowledge Assistant",
+    trustKnowledge: "Trusted Islamic Knowledge with Verified Access",
+    signInDesc: "Sign in to ask questions, review references, and continue your previous conversations.",
+    highlight1Title: "Ask Questions Clearly",
+    highlight1Desc: "Submit questions in Bengali or English and follow the cited sources.",
+    highlight2Title: "Trusted References",
+    highlight2Desc: "Answers provided from sources linked to the Islamic knowledge library.",
+    highlight3Title: "Verified Access",
+    highlight3Desc: "New accounts are verified with email OTP before signing in.",
+    signIn: "Sign In",
+    signUp: "Sign Up",
+    greeting: "Assalamu Alaikum",
+    createAccount: "Create Your Account",
+    verifyOtp: "Verify OTP",
+    useEmailPassword: "Use your registered email and password.",
+    enterDetails: "Enter your details. We will send a 6-digit OTP to your email.",
+    otpSent: "We sent an OTP to",
+    otpSentEnd: "",
+    email: "Email",
+    password: "Password",
+    name: "Name",
+    otp: "OTP",
+    emailPlaceholder: "your email",
+    passwordPlaceholder: "Enter your password",
+    createPasswordPlaceholder: "Create a password",
+    namePlaceholder: "Your full name",
+    otpPlaceholder: "6-digit code",
+    sendOtp: "Send OTP",
+    verifyAccount: "Verify Account",
+    resendOtp: "Resend OTP",
+    backToSignup: "Back to Sign Up",
+    copyright: "© {year} As-Sunnah Foundation. All rights reserved.",
   },
-  {
-    icon: ShieldCheck,
-    title: "Verified access",
-    desc: "New accounts are confirmed with email OTP before sign in.",
-  },
-]
+}
 
 type AuthMode = "signin" | "signup" | "otp"
 
@@ -61,6 +119,27 @@ export function LoginScreen({
   onVerifyOtp,
   onResendOtp,
 }: LoginScreenProps) {
+  const { language } = useLanguage()
+  const t = translations[language]
+  
+  const highlights = [
+    {
+      icon: MessageCircleQuestion,
+      title: t.highlight1Title,
+      desc: t.highlight1Desc,
+    },
+    {
+      icon: BookOpen,
+      title: t.highlight2Title,
+      desc: t.highlight2Desc,
+    },
+    {
+      icon: ShieldCheck,
+      title: t.highlight3Title,
+      desc: t.highlight3Desc,
+    },
+  ]
+  
   const [mode, setMode] = useState<AuthMode>("signin")
   const [signinForm, setSigninForm] = useState<LoginFormValues>({ email: "", password: "" })
   const [signupForm, setSignupForm] = useState<SignupFormValues>({ name: "", email: "", password: "" })
@@ -158,107 +237,58 @@ export function LoginScreen({
   }
 
   return (
-    <main className="grid min-h-dvh grid-cols-1 lg:grid-cols-[1.1fr_1fr]">
-      <section className="relative hidden flex-col justify-between overflow-hidden bg-primary p-10 text-primary-foreground lg:flex">
-        <div
-          className="pointer-events-none absolute inset-0 opacity-[0.12]"
-          style={{
-            backgroundImage:
-              "radial-gradient(circle at 1px 1px, white 1px, transparent 0)",
-            backgroundSize: "22px 22px",
-          }}
-          aria-hidden="true"
-        />
-        <div className="relative flex items-center gap-3">
-          <BrandMark size={48} />
-          <div className="leading-tight">
-            <p className="text-sm/5 text-primary-foreground/80">As-Sunnah Foundation</p>
-            <p className="font-heading text-lg font-bold">Islamic GPT</p>
-          </div>
+    <main className="relative min-h-dvh overflow-hidden bg-gradient-to-b from-[#E8F5E6] via-[#D4EED1] to-white flex items-center justify-center px-6 py-8">
+
+      {/* Centered login form */}
+      <div className="w-full max-w-xl">
+        <div className="mb-8 flex flex-col items-center text-center">
+          <BrandMark size={64} />
+          <p className="mt-3 text-sm text-gray-700">{t.foundation}</p>
+          <h1 className="font-heading text-3xl font-bold text-gray-900">{t.appName}</h1>
         </div>
 
-        <div className="relative max-w-md">
-          <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-medium">
-            <Sparkles className="size-3.5" />
-            AI-powered knowledge assistant
-          </span>
-          <h1 className="mt-5 text-balance font-heading text-4xl font-bold leading-tight">
-            Reliable Islamic knowledge with verified access
-          </h1>
-          <p className="mt-4 text-pretty leading-relaxed text-primary-foreground/85">
-            Sign in to ask questions, review references, and continue your previous conversations.
-          </p>
-
-          <div className="mt-8 space-y-4">
-            {highlights.map((item) => (
-              <div key={item.title} className="flex items-start gap-3">
-                <span className="mt-0.5 inline-flex size-9 shrink-0 items-center justify-center rounded-lg bg-white/15">
-                  <item.icon className="size-5" />
-                </span>
-                <div>
-                  <p className="font-semibold">{item.title}</p>
-                  <p className="text-sm text-primary-foreground/80">{item.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <p className="relative text-xs text-primary-foreground/70">
-          © {new Date().getFullYear()} As-Sunnah Foundation. All rights reserved.
-        </p>
-      </section>
-
-      <section className="flex min-h-dvh items-center justify-center overflow-y-auto bg-background px-6 py-8">
-        <div className="w-full max-w-sm">
-          <div className="mb-8 flex flex-col items-center text-center lg:hidden">
-            <BrandMark size={56} />
-            <p className="mt-3 text-sm text-muted-foreground">As-Sunnah Foundation</p>
-            <h1 className="font-heading text-2xl font-bold">Islamic GPT</h1>
-          </div>
-
-          <div className="rounded-2xl border border-border bg-card p-7 shadow-sm">
+        <div className="rounded-2xl border-2 border-white/40 bg-white/25 p-20 shadow-2xl backdrop-blur-xl">
             {mode === "otp" ? (
               <button
                 type="button"
                 onClick={() => switchMode("signup")}
-                className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition hover:text-foreground"
+                className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-gray-700 transition hover:text-gray-900 cursor-pointer"
               >
                 <ArrowLeft className="size-4" />
-                Back to sign up
+                {t.backToSignup}
               </button>
             ) : (
-              <div className="mb-5 grid grid-cols-2 rounded-xl bg-muted p-1">
+              <div className="mb-5 grid grid-cols-2 rounded-xl border border-white/30 bg-white/15 p-1 backdrop-blur-sm">
                 <button
                   type="button"
                   onClick={() => switchMode("signin")}
-                  className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${
-                    mode === "signin" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"
+                  className={`rounded-lg px-3 py-2 text-sm font-semibold transition cursor-pointer ${
+                    mode === "signin" ? "bg-white/30 text-gray-900 shadow-sm backdrop-blur-sm border-2 border-[#64C859]" : "text-gray-700 hover:text-gray-900"
                   }`}
                 >
-                  Sign in
+                  {t.signIn}
                 </button>
                 <button
                   type="button"
                   onClick={() => switchMode("signup")}
-                  className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${
-                    mode === "signup" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"
+                  className={`rounded-lg px-3 py-2 text-sm font-semibold transition cursor-pointer ${
+                    mode === "signup" ? "bg-white/30 text-gray-900 shadow-sm backdrop-blur-sm border-2 border-[#64C859]" : "text-gray-700 hover:text-gray-900"
                   }`}
                 >
-                  Sign up
+                  {t.signUp}
                 </button>
               </div>
             )}
 
-            <h2 className="font-heading text-xl font-bold text-card-foreground">
-              {mode === "signin" ? "Welcome back" : mode === "signup" ? "Create your account" : "Verify OTP"}
+            <h2 className="font-heading text-xl font-bold text-gray-800 text-center">
+              {mode === "signin" ? t.greeting : mode === "signup" ? t.createAccount : t.verifyOtp}
             </h2>
-            <p className="mt-1 text-sm text-muted-foreground">
+            <p className="mt-1 text-sm text-gray-700 text-center">
               {mode === "signin"
-                ? "Use your registered email and password."
+                ? t.useEmailPassword
                 : mode === "signup"
-                  ? "Enter your details. We will send a 6-digit OTP to your email."
-                  : `We sent an OTP to ${otpForm.email || "your email"}.`}
+                  ? t.enterDetails
+                  : `${t.otpSent} ${otpForm.email || language === "bn" ? "আপনার ইমেইলে" : "your email"}${t.otpSentEnd ? ` ${t.otpSentEnd}` : "."}`}
             </p>
 
             {visibleError ? (
@@ -277,10 +307,10 @@ export function LoginScreen({
               <form className="mt-6 space-y-4" onSubmit={handleSignin}>
                 <TextField
                   id="signin-email"
-                  label="Email"
+                  label={t.email}
                   type="email"
                   icon={Mail}
-                  placeholder="you@example.com"
+                  placeholder={t.emailPlaceholder}
                   value={signinForm.email}
                   onChange={(value) => setSigninForm((current) => ({ ...current, email: value }))}
                   disabled={isBusy}
@@ -288,21 +318,21 @@ export function LoginScreen({
                 />
                 <TextField
                   id="signin-password"
-                  label="Password"
+                  label={t.password}
                   type="password"
                   icon={Lock}
-                  placeholder="Enter your password"
+                  placeholder={t.passwordPlaceholder}
                   value={signinForm.password}
                   onChange={(value) => setSigninForm((current) => ({ ...current, password: value }))}
                   disabled={isBusy}
                   autoComplete="current-password"
                 />
 
-                <Button type="submit" size="lg" disabled={isSubmitting} className="h-11 w-full rounded-xl text-base">
+                <Button type="submit" size="lg" disabled={isSubmitting} className="h-11 w-full rounded-xl text-base bg-[#64C859] hover:bg-[#64C859]/90 cursor-pointer">
                   <span className="inline-flex size-4 items-center justify-center">
                     {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : null}
                   </span>
-                  Sign in
+                  {t.signIn}
                 </Button>
               </form>
             ) : null}
@@ -311,10 +341,10 @@ export function LoginScreen({
               <form className="mt-6 space-y-4" onSubmit={handleSignup}>
                 <TextField
                   id="signup-name"
-                  label="Name"
+                  label={t.name}
                   type="text"
                   icon={User}
-                  placeholder="Your full name"
+                  placeholder={t.namePlaceholder}
                   value={signupForm.name}
                   onChange={(value) => setSignupForm((current) => ({ ...current, name: value }))}
                   disabled={isBusy}
@@ -322,10 +352,10 @@ export function LoginScreen({
                 />
                 <TextField
                   id="signup-email"
-                  label="Email"
+                  label={t.email}
                   type="email"
                   icon={Mail}
-                  placeholder="you@example.com"
+                  placeholder={t.emailPlaceholder}
                   value={signupForm.email}
                   onChange={(value) => setSignupForm((current) => ({ ...current, email: value }))}
                   disabled={isBusy}
@@ -333,21 +363,21 @@ export function LoginScreen({
                 />
                 <TextField
                   id="signup-password"
-                  label="Password"
+                  label={t.password}
                   type="password"
                   icon={Lock}
-                  placeholder="Create a password"
+                  placeholder={t.createPasswordPlaceholder}
                   value={signupForm.password}
                   onChange={(value) => setSignupForm((current) => ({ ...current, password: value }))}
                   disabled={isBusy}
                   autoComplete="new-password"
                 />
 
-                <Button type="submit" size="lg" disabled={isSubmitting} className="h-11 w-full rounded-xl text-base">
+                <Button type="submit" size="lg" disabled={isSubmitting} className="h-11 w-full rounded-xl text-base bg-[#64C859] hover:bg-[#64C859]/90 cursor-pointer">
                   <span className="inline-flex size-4 items-center justify-center">
                     {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : null}
                   </span>
-                  Send OTP
+                  {t.sendOtp}
                 </Button>
               </form>
             ) : null}
@@ -356,10 +386,10 @@ export function LoginScreen({
               <form className="mt-6 space-y-4" onSubmit={handleVerifyOtp}>
                 <TextField
                   id="otp-email"
-                  label="Email"
+                  label={t.email}
                   type="email"
                   icon={Mail}
-                  placeholder="you@example.com"
+                  placeholder={t.emailPlaceholder}
                   value={otpForm.email}
                   onChange={(value) => setOtpForm((current) => ({ ...current, email: value }))}
                   disabled={isBusy}
@@ -367,10 +397,10 @@ export function LoginScreen({
                 />
                 <TextField
                   id="otp-code"
-                  label="OTP"
+                  label={t.otp}
                   type="text"
                   icon={ShieldCheck}
-                  placeholder="6-digit code"
+                  placeholder={t.otpPlaceholder}
                   value={otpForm.otp}
                   onChange={(value) => setOtpForm((current) => ({ ...current, otp: value.replace(/\D/g, "").slice(0, 6) }))}
                   disabled={isBusy}
@@ -379,29 +409,35 @@ export function LoginScreen({
                   maxLength={6}
                 />
 
-                <Button type="submit" size="lg" disabled={isVerifying} className="h-11 w-full rounded-xl text-base">
+                <Button type="submit" size="lg" disabled={isVerifying} className="h-11 w-full rounded-xl text-base bg-[#64C859] hover:bg-[#64C859]/90 cursor-pointer">
                   <span className="inline-flex size-4 items-center justify-center">
                     {isVerifying ? <Loader2 className="size-4 animate-spin" /> : null}
                   </span>
-                  Verify account
+                  {t.verifyAccount}
                 </Button>
                 <Button
                   type="button"
                   variant="ghost"
                   disabled={isResending}
                   onClick={handleResendOtp}
-                  className="h-10 w-full rounded-xl"
+                  className="h-10 w-full rounded-xl cursor-pointer"
                 >
                   <span className="inline-flex size-4 items-center justify-center">
                     {isResending ? <Loader2 className="size-4 animate-spin" /> : null}
                   </span>
-                  Resend OTP
+                  {t.resendOtp}
                 </Button>
               </form>
             ) : null}
           </div>
         </div>
-      </section>
+
+      {/* Copyright footer - bottom center */}
+      <div className="absolute bottom-0 left-0 right-0 pb-4 text-center">
+        <p className="text-xs font-bold text-gray-500">
+          {t.copyright.replace("{year}", new Date().getFullYear().toString())}
+        </p>
+      </div>
     </main>
   )
 }
@@ -437,11 +473,11 @@ function TextField({
 
   return (
     <div className="space-y-1.5">
-      <label htmlFor={id} className="text-sm font-medium text-foreground">
+      <label htmlFor={id} className="text-sm font-medium text-gray-800">
         {label}
       </label>
       <div className="relative">
-        <Icon className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+        <Icon className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-gray-600" />
         <input
           id={id}
           type={resolvedType}
@@ -452,13 +488,13 @@ function TextField({
           inputMode={inputMode}
           maxLength={maxLength}
           placeholder={placeholder}
-          className="h-11 w-full rounded-xl border border-input bg-background px-10 text-sm outline-none transition disabled:cursor-not-allowed disabled:opacity-60 focus:border-ring focus:ring-2 focus:ring-ring/30"
+          className="h-11 w-full rounded-xl border-2 border-white/40 bg-white/20 px-10 text-sm text-gray-900 placeholder:text-gray-600 outline-none transition backdrop-blur-sm disabled:cursor-not-allowed disabled:opacity-60 focus:border-white/60 focus:bg-white/30 focus:ring-2 focus:ring-white/30"
         />
         {isPassword ? (
           <button
             type="button"
             onClick={() => setShowPassword((prev) => !prev)}
-            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground transition hover:text-foreground"
+            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-600 transition hover:text-gray-900"
             aria-label={showPassword ? "Hide password" : "Show password"}
             tabIndex={-1}
           >
