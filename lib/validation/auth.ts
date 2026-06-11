@@ -1,43 +1,47 @@
 import { z } from "zod"
 
-const emailSchema = z.string().trim().email("Enter a valid email address.")
-
-const passwordSchema = z
-  .string()
-  .min(8, "Password must be at least 8 characters.")
-  .regex(/[A-Z]/, "Password must include an uppercase letter.")
-  .regex(/[a-z]/, "Password must include a lowercase letter.")
-  .regex(/[0-9]/, "Password must include a number.")
-  .regex(/[^A-Za-z0-9]/, "Password must include a special character.")
+// Minimal checks only — just prevents submitting empty fields.
+// All real validation (password strength, email format, OTP format, etc.)
+// is handled by the backend.
 
 export const loginSchema = z.object({
-  email: emailSchema,
+  email: z.string().min(1, "Email is required."),
   password: z.string().min(1, "Password is required."),
 })
 
 export const signupSchema = z.object({
-  name: z.string().trim().min(2, "Name must be at least 2 characters."),
-  email: emailSchema,
-  password: passwordSchema,
+  name: z.string().min(1, "Name is required."),
+  email: z.string().min(1, "Email is required."),
+  password: z.string().min(1, "Password is required."),
 })
 
 export const otpSchema = z.object({
-  email: emailSchema,
-  otp: z.string().trim().regex(/^\d{6}$/, "Enter the 6-digit OTP."),
+  email: z.string().min(1, "Email is required."),
+  otp: z.string().min(1, "OTP is required."),
 })
 
 export const resendOtpSchema = z.object({
-  email: emailSchema,
+  email: z.string().min(1, "Email is required."),
+})
+
+export const acceptInviteSchema = z.object({
+  email: z.string().min(1, "Email is required."),
+  password: z.string().min(1, "Password is required."),
+  confirmPassword: z.string().min(1, "Please confirm your password."),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords do not match.",
+  path: ["confirmPassword"],
 })
 
 export type LoginFormValues = z.infer<typeof loginSchema>
 export type SignupFormValues = z.infer<typeof signupSchema>
 export type OtpFormValues = z.infer<typeof otpSchema>
+export type AcceptInviteFormValues = z.infer<typeof acceptInviteSchema>
 
 export function getValidationMessage(error: unknown) {
   if (error instanceof z.ZodError) {
-    return error.issues[0]?.message ?? "Please check the form and try again."
+    return error.issues[0]?.message ?? "Please fill in all required fields."
   }
 
-  return "Please check the form and try again."
+  return "Please fill in all required fields."
 }

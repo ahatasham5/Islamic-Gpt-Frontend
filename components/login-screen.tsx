@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, type FormEvent } from "react"
 import { BrandMark } from "@/components/brand-mark"
 import { Button } from "@/components/ui/button"
@@ -9,6 +7,8 @@ import { getValidationMessage, loginSchema, otpSchema, resendOtpSchema, signupSc
 import {
   ArrowLeft,
   BookOpen,
+  Eye,
+  EyeOff,
   Loader2,
   Lock,
   Mail,
@@ -280,6 +280,7 @@ export function LoginScreen({
                   label="Email"
                   type="email"
                   icon={Mail}
+                  placeholder="you@example.com"
                   value={signinForm.email}
                   onChange={(value) => setSigninForm((current) => ({ ...current, email: value }))}
                   disabled={isBusy}
@@ -290,6 +291,7 @@ export function LoginScreen({
                   label="Password"
                   type="password"
                   icon={Lock}
+                  placeholder="Enter your password"
                   value={signinForm.password}
                   onChange={(value) => setSigninForm((current) => ({ ...current, password: value }))}
                   disabled={isBusy}
@@ -297,7 +299,9 @@ export function LoginScreen({
                 />
 
                 <Button type="submit" size="lg" disabled={isSubmitting} className="h-11 w-full rounded-xl text-base">
-                  {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : null}
+                  <span className="inline-flex size-4 items-center justify-center">
+                    {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : null}
+                  </span>
                   Sign in
                 </Button>
               </form>
@@ -310,6 +314,7 @@ export function LoginScreen({
                   label="Name"
                   type="text"
                   icon={User}
+                  placeholder="Your full name"
                   value={signupForm.name}
                   onChange={(value) => setSignupForm((current) => ({ ...current, name: value }))}
                   disabled={isBusy}
@@ -320,6 +325,7 @@ export function LoginScreen({
                   label="Email"
                   type="email"
                   icon={Mail}
+                  placeholder="you@example.com"
                   value={signupForm.email}
                   onChange={(value) => setSignupForm((current) => ({ ...current, email: value }))}
                   disabled={isBusy}
@@ -330,6 +336,7 @@ export function LoginScreen({
                   label="Password"
                   type="password"
                   icon={Lock}
+                  placeholder="Create a password"
                   value={signupForm.password}
                   onChange={(value) => setSignupForm((current) => ({ ...current, password: value }))}
                   disabled={isBusy}
@@ -337,7 +344,9 @@ export function LoginScreen({
                 />
 
                 <Button type="submit" size="lg" disabled={isSubmitting} className="h-11 w-full rounded-xl text-base">
-                  {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : null}
+                  <span className="inline-flex size-4 items-center justify-center">
+                    {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : null}
+                  </span>
                   Send OTP
                 </Button>
               </form>
@@ -350,6 +359,7 @@ export function LoginScreen({
                   label="Email"
                   type="email"
                   icon={Mail}
+                  placeholder="you@example.com"
                   value={otpForm.email}
                   onChange={(value) => setOtpForm((current) => ({ ...current, email: value }))}
                   disabled={isBusy}
@@ -360,6 +370,7 @@ export function LoginScreen({
                   label="OTP"
                   type="text"
                   icon={ShieldCheck}
+                  placeholder="6-digit code"
                   value={otpForm.otp}
                   onChange={(value) => setOtpForm((current) => ({ ...current, otp: value.replace(/\D/g, "").slice(0, 6) }))}
                   disabled={isBusy}
@@ -369,7 +380,9 @@ export function LoginScreen({
                 />
 
                 <Button type="submit" size="lg" disabled={isVerifying} className="h-11 w-full rounded-xl text-base">
-                  {isVerifying ? <Loader2 className="size-4 animate-spin" /> : null}
+                  <span className="inline-flex size-4 items-center justify-center">
+                    {isVerifying ? <Loader2 className="size-4 animate-spin" /> : null}
+                  </span>
                   Verify account
                 </Button>
                 <Button
@@ -379,7 +392,9 @@ export function LoginScreen({
                   onClick={handleResendOtp}
                   className="h-10 w-full rounded-xl"
                 >
-                  {isResending ? <Loader2 className="size-4 animate-spin" /> : null}
+                  <span className="inline-flex size-4 items-center justify-center">
+                    {isResending ? <Loader2 className="size-4 animate-spin" /> : null}
+                  </span>
                   Resend OTP
                 </Button>
               </form>
@@ -396,6 +411,7 @@ function TextField({
   label,
   type,
   icon: Icon,
+  placeholder,
   value,
   onChange,
   disabled,
@@ -407,6 +423,7 @@ function TextField({
   label: string
   type: string
   icon: typeof Mail
+  placeholder?: string
   value: string
   onChange: (value: string) => void
   disabled: boolean
@@ -414,6 +431,10 @@ function TextField({
   inputMode?: "email" | "numeric" | "search" | "tel" | "text" | "url"
   maxLength?: number
 }) {
+  const [showPassword, setShowPassword] = useState(false)
+  const isPassword = type === "password"
+  const resolvedType = isPassword ? (showPassword ? "text" : "password") : type
+
   return (
     <div className="space-y-1.5">
       <label htmlFor={id} className="text-sm font-medium text-foreground">
@@ -423,15 +444,27 @@ function TextField({
         <Icon className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
         <input
           id={id}
-          type={type}
+          type={resolvedType}
           value={value}
           onChange={(event) => onChange(event.target.value)}
           disabled={disabled}
           autoComplete={autoComplete}
           inputMode={inputMode}
           maxLength={maxLength}
+          placeholder={placeholder}
           className="h-11 w-full rounded-xl border border-input bg-background px-10 text-sm outline-none transition disabled:cursor-not-allowed disabled:opacity-60 focus:border-ring focus:ring-2 focus:ring-ring/30"
         />
+        {isPassword ? (
+          <button
+            type="button"
+            onClick={() => setShowPassword((prev) => !prev)}
+            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground transition hover:text-foreground"
+            aria-label={showPassword ? "Hide password" : "Show password"}
+            tabIndex={-1}
+          >
+            {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+          </button>
+        ) : null}
       </div>
     </div>
   )

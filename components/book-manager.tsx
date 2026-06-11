@@ -1,5 +1,3 @@
-"use client"
-
 import { type ChangeEvent } from "react"
 import { Button } from "@/components/ui/button"
 import { formatDate } from "@/lib/format"

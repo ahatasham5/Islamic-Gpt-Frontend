@@ -1,5 +1,3 @@
-"use client"
-
 import { useCallback, useState } from "react"
 import { chatApi } from "@/lib/api/chat"
 import { getApiErrorMessage } from "@/lib/http"

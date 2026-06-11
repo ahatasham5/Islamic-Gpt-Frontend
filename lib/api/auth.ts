@@ -1,5 +1,5 @@
 import { apiRequest } from "@/lib/http"
-import type { ResendOTP, Token, UserCreate, UserLogin, UserResponse, VerifyOTP } from "@/lib/types"
+import type { AcceptInvite, MuftiCreate, ResendOTP, Token, UserCreate, UserLogin, UserResponse, VerifyOTP } from "@/lib/types"
 
 type EmptyResponse = Record<string, never>
 
@@ -32,6 +32,22 @@ export const authApi = {
     return apiRequest<Token>({
       method: "POST",
       url: "/auth/login",
+      data: payload,
+    })
+  },
+
+  createMufti(payload: MuftiCreate) {
+    return apiRequest<UserResponse>({
+      method: "POST",
+      url: "/auth/create-mufti",
+      data: payload,
+    })
+  },
+
+  acceptInvite(payload: AcceptInvite) {
+    return apiRequest<UserResponse>({
+      method: "POST",
+      url: "/auth/accept-invite",
       data: payload,
     })
   },

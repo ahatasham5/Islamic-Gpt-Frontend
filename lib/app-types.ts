@@ -1,7 +1,7 @@
 import type { AuthSession, ChatResponse } from "@/lib/types"
 
 export type ServerState = "checking" | "online" | "offline"
-export type ViewMode = "chat" | "books"
+export type ViewMode = "chat" | "books" | "mufti-management"
 export type { AuthSession }
 
 export type ChatTurn = {

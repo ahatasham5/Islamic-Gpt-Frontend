@@ -11,6 +11,16 @@ export type UserCreate = {
   password: string;
 };
 
+export type MuftiCreate = {
+  name: string;
+  email: string;
+};
+
+export type AcceptInvite = {
+  email: string;
+  password: string;
+};
+
 export type UserLogin = {
   email: string;
   password: string;

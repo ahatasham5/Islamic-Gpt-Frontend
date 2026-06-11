@@ -1,5 +1,3 @@
-"use client"
-
 import { useEffect, useState } from "react"
 import { renderFormattedAnswer } from "@/lib/format"
 
