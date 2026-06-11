@@ -15,11 +15,12 @@ export function ChatSidebar({
   conversations,
   activeConversationId,
   viewMode,
-  canManageBooks,
+  canViewBooks,
   onNewChat,
   onSelectConversation,
   onOpenBooks,
   onOpenMuftiManagement,
+  isCreateMuftiOpen,
   onLogout,
   onCloseMobile,
 }: {
@@ -27,11 +28,12 @@ export function ChatSidebar({
   conversations: DraftConversation[]
   activeConversationId: string
   viewMode: "chat" | "books" | "mufti-management"
-  canManageBooks: boolean
+  canViewBooks: boolean
   onNewChat: () => void
   onSelectConversation: (id: string) => void
   onOpenBooks: () => void
   onOpenMuftiManagement: () => void
+  isCreateMuftiOpen: boolean
   onLogout: () => void
   onCloseMobile?: () => void
 }) {
@@ -114,7 +116,7 @@ export function ChatSidebar({
 
       {/* Bottom */}
       <div className="shrink-0 space-y-2 border-t border-sidebar-border bg-sidebar p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
-        {canManageBooks ? (
+        {canViewBooks ? (
           <button
             type="button"
             onClick={onOpenBooks}
@@ -126,7 +128,7 @@ export function ChatSidebar({
             )}
           >
             <BookMarked className="size-5 text-primary" />
-            কিতাব ম্যানেজ করুন
+            {session.user.role === "super_admin" ? "কিতাব ম্যানেজ করুন" : "কিতাব সমূহ"}
           </button>
         ) : null}
 
@@ -136,7 +138,7 @@ export function ChatSidebar({
             onClick={onOpenMuftiManagement}
             className={cn(
               "flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium transition",
-              viewMode === "mufti-management"
+              isCreateMuftiOpen
                 ? "bg-accent text-accent-foreground ring-1 ring-primary/30"
                 : "text-foreground hover:bg-sidebar-accent",
             )}

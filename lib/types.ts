@@ -70,6 +70,8 @@ export type BookInfo = {
 export type BookListResponse = {
   books: BookInfo[];
   total: number;
+  page: number;
+  size: number;
 };
 
 export type BookUploadResponse = {

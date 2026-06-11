@@ -11,9 +11,10 @@ import { ChatSidebar } from "@/components/chat-sidebar"
 import { ChatMain } from "@/components/chat-main"
 import { SourcesPanel } from "@/components/sources-panel"
 import { BookManager } from "@/components/book-manager"
-import { CreateMuftiPanel } from "@/components/create-mufti-panel"
+import { CreateMuftiDialog } from "@/components/create-mufti-panel"
 import { ThinkingModal } from "@/components/thinking-modal"
 import { Sheet, SheetContent } from "@/components/ui/sheet"
+import { cn } from "@/lib/utils"
 
 const initialConversations: DraftConversation[] = [
   {
@@ -29,9 +30,10 @@ export function ChatApp() {
   const router = useRouter()
 
   const canManageBooks = session?.user.role === "super_admin"
+  const canViewBooks = session?.user.role === "super_admin" || session?.user.role === "mufti"
   const health = useHealth(Boolean(session))
   const chat = useChat()
-  const bookState = useBooks(Boolean(session && canManageBooks))
+  const bookState = useBooks(Boolean(session && canViewBooks))
 
   const [conversations, setConversations] = useState<DraftConversation[]>(initialConversations)
   const [activeConversationId, setActiveConversationId] = useState(initialConversations[0].id)
@@ -43,6 +45,8 @@ export function ChatApp() {
   const [streamingTurnId, setStreamingTurnId] = useState<string | null>(null)
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
   const [mobileSourcesOpen, setMobileSourcesOpen] = useState(false)
+  const [desktopSourcesOpen, setDesktopSourcesOpen] = useState(false)
+  const [isCreateMuftiOpen, setIsCreateMuftiOpen] = useState(false)
 
   const activeConversation = useMemo(
     () => conversations.find((c) => c.id === activeConversationId) ?? conversations[0],
@@ -93,8 +97,8 @@ export function ChatApp() {
   }
 
   function handleOpenMuftiManagement() {
-    setViewMode("mufti-management")
     setMobileNavOpen(false)
+    setIsCreateMuftiOpen(true)
   }
 
   async function handleAsk(event: FormEvent<HTMLFormElement>) {
@@ -183,18 +187,24 @@ export function ChatApp() {
       conversations={conversations}
       activeConversationId={activeConversationId}
       viewMode={viewMode}
-      canManageBooks={Boolean(canManageBooks)}
+      canViewBooks={canViewBooks}
       onNewChat={handleNewChat}
       onSelectConversation={handleSelectConversation}
       onOpenBooks={handleOpenBooks}
       onOpenMuftiManagement={handleOpenMuftiManagement}
+      isCreateMuftiOpen={isCreateMuftiOpen}
       onLogout={handleLogout}
       onCloseMobile={onCloseMobile}
     />
   )
 
   return (
-    <div className="grid h-dvh min-h-0 grid-cols-1 overflow-hidden lg:grid-cols-[280px_minmax(0,1fr)] xl:grid-cols-[280px_minmax(0,1fr)_340px]">
+    <div
+      className={cn(
+        "grid h-dvh min-h-0 grid-cols-1 overflow-hidden lg:grid-cols-[300px_minmax(0,1fr)]",
+        viewMode === "chat" && desktopSourcesOpen && "xl:grid-cols-[300px_minmax(0,1fr)_340px]"
+      )}
+    >
       <aside className="hidden min-h-0 overflow-hidden border-r border-sidebar-border lg:block">
         {sidebar()}
       </aside>
@@ -205,19 +215,22 @@ export function ChatApp() {
         </SheetContent>
       </Sheet>
 
-      {viewMode === "books" && canManageBooks ? (
+      {viewMode === "books" && canViewBooks ? (
         <BookManager
           books={bookState.books}
           isLoadingBooks={bookState.isLoadingBooks}
           uploadMessage={bookState.uploadMessage}
           isUploading={bookState.isUploading}
           deletingBookId={bookState.deletingBookId}
+          canManageBooks={canManageBooks}
+          page={bookState.page}
+          size={bookState.size}
+          total={bookState.total}
+          onPageChange={bookState.setPage}
           onUpload={handleUpload}
           onDelete={handleDelete}
           onOpenMobileMenu={() => setMobileNavOpen(true)}
         />
-      ) : viewMode === "mufti-management" && session.user.role === "super_admin" ? (
-        <CreateMuftiPanel onOpenMobileMenu={() => setMobileNavOpen(true)} />
       ) : (
         <ChatMain
           conversation={activeConversation}
@@ -234,7 +247,11 @@ export function ChatApp() {
           onSubmit={handleAsk}
           onSelectTurn={(id) => {
             setSelectedTurnId(id)
-            setMobileSourcesOpen(true)
+            if (window.innerWidth >= 1280) {
+              setDesktopSourcesOpen(true)
+            } else {
+              setMobileSourcesOpen(true)
+            }
           }}
           onStreamDone={() => setStreamingTurnId(null)}
           onOpenMobileMenu={() => setMobileNavOpen(true)}
@@ -242,9 +259,9 @@ export function ChatApp() {
         />
       )}
 
-      {viewMode === "chat" ? (
+      {viewMode === "chat" && desktopSourcesOpen ? (
         <aside className="hidden min-h-0 overflow-hidden border-l border-border xl:block">
-          <SourcesPanel selectedTurn={selectedTurn} onViewThinking={setThinkingSource} />
+          <SourcesPanel selectedTurn={selectedTurn} onViewThinking={setThinkingSource} onClose={() => setDesktopSourcesOpen(false)} />
         </aside>
       ) : null}
       <Sheet open={mobileSourcesOpen} onOpenChange={setMobileSourcesOpen}>
@@ -254,6 +271,9 @@ export function ChatApp() {
       </Sheet>
 
       <ThinkingModal source={thinkingSource} onClose={() => setThinkingSource(null)} />
+      {session.user.role === "super_admin" ? (
+        <CreateMuftiDialog open={isCreateMuftiOpen} onOpenChange={setIsCreateMuftiOpen} />
+      ) : null}
     </div>
   )
 }
