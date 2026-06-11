@@ -240,14 +240,14 @@ export function LoginScreen({
     <main className="relative min-h-dvh overflow-hidden bg-gradient-to-b from-[#E8F5E6] via-[#D4EED1] to-white flex items-center justify-center px-6 py-8">
 
       {/* Centered login form */}
-      <div className="w-full max-w-xl">
+      <div className="w-full max-w-xl animate-in fade-in zoom-in-95 duration-500">
         <div className="mb-8 flex flex-col items-center text-center">
           <BrandMark size={64} />
           <p className="mt-3 text-sm text-gray-700">{t.foundation}</p>
           <h1 className="font-heading text-3xl font-bold text-gray-900">{t.appName}</h1>
         </div>
 
-        <div className="rounded-2xl border-2 border-white/40 bg-white/25 p-20 shadow-2xl backdrop-blur-xl">
+        <div className="rounded-2xl border-2 border-white/60 bg-white/30 p-20 shadow-xl backdrop-blur-2xl hover:shadow-2xl transition-shadow duration-300">
             {mode === "otp" ? (
               <button
                 type="button"
@@ -262,7 +262,7 @@ export function LoginScreen({
                 <button
                   type="button"
                   onClick={() => switchMode("signin")}
-                  className={`rounded-lg px-3 py-2 text-sm font-semibold transition cursor-pointer ${
+                  className={`rounded-lg px-3 py-2 text-sm font-semibold cursor-pointer ${
                     mode === "signin" ? "bg-white/30 text-gray-900 shadow-sm backdrop-blur-sm border-2 border-[#64C859]" : "text-gray-700 hover:text-gray-900"
                   }`}
                 >
@@ -271,7 +271,7 @@ export function LoginScreen({
                 <button
                   type="button"
                   onClick={() => switchMode("signup")}
-                  className={`rounded-lg px-3 py-2 text-sm font-semibold transition cursor-pointer ${
+                  className={`rounded-lg px-3 py-2 text-sm font-semibold cursor-pointer ${
                     mode === "signup" ? "bg-white/30 text-gray-900 shadow-sm backdrop-blur-sm border-2 border-[#64C859]" : "text-gray-700 hover:text-gray-900"
                   }`}
                 >
@@ -303,8 +303,9 @@ export function LoginScreen({
               </p>
             ) : null}
 
+            <div className="relative overflow-hidden px-4">
             {mode === "signin" ? (
-              <form className="mt-6 space-y-4" onSubmit={handleSignin}>
+              <form key="signin" className="mt-6 space-y-4 animate-in fade-in duration-700 [animation-timing-function:cubic-bezier(0.4,0,0.2,1)]" style={{animation: 'ripple 0.7s ease-out'}} onSubmit={handleSignin}>
                 <TextField
                   id="signin-email"
                   label={t.email}
@@ -338,7 +339,7 @@ export function LoginScreen({
             ) : null}
 
             {mode === "signup" ? (
-              <form className="mt-6 space-y-4" onSubmit={handleSignup}>
+              <form key="signup" className="mt-6 space-y-4 animate-in fade-in duration-700" style={{animation: 'ripple 0.7s ease-out'}} onSubmit={handleSignup}>
                 <TextField
                   id="signup-name"
                   label={t.name}
@@ -383,7 +384,7 @@ export function LoginScreen({
             ) : null}
 
             {mode === "otp" ? (
-              <form className="mt-6 space-y-4" onSubmit={handleVerifyOtp}>
+              <form key="otp" className="mt-6 space-y-4 animate-in fade-in duration-700" style={{animation: 'ripple 0.7s ease-out'}} onSubmit={handleVerifyOtp}>
                 <TextField
                   id="otp-email"
                   label={t.email}
@@ -429,6 +430,7 @@ export function LoginScreen({
                 </Button>
               </form>
             ) : null}
+            </div>
           </div>
         </div>
 
@@ -488,7 +490,7 @@ function TextField({
           inputMode={inputMode}
           maxLength={maxLength}
           placeholder={placeholder}
-          className="h-11 w-full rounded-xl border-2 border-white/40 bg-white/20 px-10 text-sm text-gray-900 placeholder:text-gray-600 outline-none transition backdrop-blur-sm disabled:cursor-not-allowed disabled:opacity-60 focus:border-white/60 focus:bg-white/30 focus:ring-2 focus:ring-white/30"
+          className="h-11 w-full rounded-xl border-2 border-[#64C859]/30 bg-white/20 pl-11 pr-10 text-sm text-gray-900 placeholder:text-gray-600 outline-none transition-all duration-300 backdrop-blur-sm disabled:cursor-not-allowed disabled:opacity-60 focus:border-[#64C859] focus:bg-white/30 focus:ring-2 focus:ring-[#64C859]/30 overflow-hidden text-ellipsis"
         />
         {isPassword ? (
           <button
