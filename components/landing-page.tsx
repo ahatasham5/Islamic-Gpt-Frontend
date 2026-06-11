@@ -14,8 +14,8 @@ const translations = {
     heroHighlight: " আপনার হাতের মুঠোয়",
     heroDesc: "কুরআন, হাদিস এবং ইসলামিক স্কলারদের রেফারেন্স সহ আপনার প্রশ্নের সঠিক উত্তর পান। যাচাইকৃত তথ্যসূত্র থেকে নির্ভরযোগ্য জ্ঞান অর্জন করুন।",
     getStarted: "শুরু করুন",
-    features: "ফিচার",
-    howItWorks: "কিভাবে কাজ করে",
+    features: "",
+    howItWorks: "",
     pricing: "মূল্য",
     faq: "প্রশ্ন",
     whyIslamicGPT: "কেন Islamic GPT?",
@@ -26,7 +26,7 @@ const translations = {
     feature2Desc: "প্রতিটি উত্তরের সাথে কুরআন, হাদিস এবং স্কলারদের রেফারেন্স দেওয়া হয়",
     feature3Title: "যাচাইকৃত তথ্য",
     feature3Desc: "মুফতিদের দ্বারা যাচাইকৃত তথ্য এবং নির্ভরযোগ্য ইসলামিক সোর্স থেকে উত্তর",
-    howTitle: "কিভাবে কাজ করে",
+    howTitle: "",
     howDesc: "মাত্র তিনটি সহজ ধাপে আপনার প্রশ্নের উত্তর পান",
     step1: "অ্যাকাউন্ট তৈরি করুন",
     step1Desc: "বিনামূল্যে সাইন আপ করুন এবং ইমেইল যাচাই করুন",
@@ -41,7 +41,7 @@ const translations = {
     heroHighlight: " at Your Fingertips",
     heroDesc: "Get accurate answers to your questions with references from Quran, Hadith, and Islamic scholars. Obtain reliable knowledge from verified sources.",
     getStarted: "Get Started",
-    features: "Features",
+    features: "",
     howItWorks: "How It Works",
     pricing: "Pricing",
     faq: "FAQ",
@@ -86,14 +86,11 @@ export function LandingPage() {
           
           {/* Desktop Navigation */}
           <nav className="hidden items-center gap-8 md:flex">
-            <a href="#features" className="text-base font-medium text-gray-700 transition hover:text-[#64C859]">{t.features}</a>
-            <a href="#how-it-works" className="text-base font-medium text-gray-700 transition hover:text-[#64C859]">{t.howItWorks}</a>
-            
             {/* Language Toggle */}
-            <div className="flex items-center gap-1 rounded-lg border-2 border-gray-300 p-1">
+            <div className="flex h-11 items-center gap-1 rounded border-2 border-gray-300 p-1">
               <button
                 onClick={() => setLanguage("bn")}
-                className={`rounded px-3 py-1 text-sm font-medium transition cursor-pointer ${
+                className={`rounded px-3 py-2 text-sm font-medium transition cursor-pointer ${
                   language === "bn" ? "bg-[#64C859] text-white" : "text-gray-700 hover:text-gray-900"
                 }`}
               >
@@ -101,7 +98,7 @@ export function LandingPage() {
               </button>
               <button
                 onClick={() => setLanguage("en")}
-                className={`rounded px-3 py-1 text-sm font-medium transition cursor-pointer ${
+                className={`rounded px-3 py-2 text-sm font-medium transition cursor-pointer ${
                   language === "en" ? "bg-[#64C859] text-white" : "text-gray-700 hover:text-gray-900"
                 }`}
               >
@@ -110,7 +107,7 @@ export function LandingPage() {
             </div>
 
             <Link href="/login">
-              <Button size="lg" className="bg-[#64C859] hover:bg-[#64C859]/90 cursor-pointer shadow-lg hover:shadow-xl transition-all hover:scale-105 rounded-md px-6 text-base font-semibold">{t.getStarted}</Button>
+              <Button size="lg" className="h-11 bg-[#64C859] hover:bg-[#64C859]/90 cursor-pointer shadow-lg hover:shadow-xl transition-all hover:scale-105 rounded px-6 text-base font-semibold">{t.getStarted}</Button>
             </Link>
           </nav>
 
@@ -127,20 +124,6 @@ export function LandingPage() {
         {mobileMenuOpen && (
           <div className="border-t border-b-2 border-gray-200 bg-white shadow-lg md:hidden">
             <nav className="flex flex-col px-4 py-4 divide-y divide-gray-200">
-              <a 
-                href="#features" 
-                onClick={() => setMobileMenuOpen(false)}
-                className="text-base font-medium text-gray-700 transition hover:text-[#64C859] py-3"
-              >
-                {t.features}
-              </a>
-              <a 
-                href="#how-it-works" 
-                onClick={() => setMobileMenuOpen(false)}
-                className="text-base font-medium text-gray-700 transition hover:text-[#64C859] py-3"
-              >
-                {t.howItWorks}
-              </a>
               
               {/* Language Toggle Mobile */}
               <div className="py-3">
@@ -175,7 +158,7 @@ export function LandingPage() {
       </header>
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden px-4 py-12 md:px-6 md:py-24">
+      <section className="relative overflow-hidden bg-gradient-to-b from-[#E8F5E6] via-[#D4EED1] to-white px-4 py-12 md:px-6 md:py-24"> 
         {/* Decorative elements */}
         <div className="pointer-events-none absolute inset-0 opacity-20">
           <svg width="100%" height="100%" className="absolute">
@@ -445,7 +428,7 @@ export function LandingPage() {
       {/* Footer */}
       <footer className="bg-gray-900 px-6 py-12 text-gray-300">
         <div className="mx-auto max-w-6xl">
-          <div className="grid gap-8 md:grid-cols-4">
+          <div className="grid gap-8 md:grid-cols-3">
             <div>
               <div className="mb-4 flex items-center gap-3">
                 <BrandMark size={36} />
@@ -457,15 +440,6 @@ export function LandingPage() {
               <p className="text-sm text-gray-400">
                 বিশ্বাসযোগ্য ইসলামিক জ্ঞান যাচাইকৃত প্রবেশাধিকারে
               </p>
-            </div>
-
-            <div>
-              <h4 className="mb-4 font-heading font-bold text-white">প্রোডাক্ট</h4>
-              <ul className="space-y-2 text-sm">
-                <li><a href="#features" className="transition hover:text-[#64C859]">ফিচার</a></li>
-                <li><a href="#pricing" className="transition hover:text-[#64C859]">মূল্য</a></li>
-                <li><a href="#faq" className="transition hover:text-[#64C859]">FAQ</a></li>
-              </ul>
             </div>
 
             <div>

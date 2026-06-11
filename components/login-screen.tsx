@@ -237,170 +237,17 @@ export function LoginScreen({
   }
 
   return (
-    <main className="relative min-h-dvh overflow-hidden bg-white">
+    <main className="relative min-h-dvh overflow-hidden bg-gradient-to-b from-[#E8F5E6] via-[#D4EED1] to-white flex items-center justify-center px-6 py-8">
 
-      {/* Background image */}
-      <div 
-        className="pointer-events-none absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: 'url(/background.png)' }}
-      />
+      {/* Centered login form */}
+      <div className="w-full max-w-xl">
+        <div className="mb-8 flex flex-col items-center text-center">
+          <BrandMark size={64} />
+          <p className="mt-3 text-sm text-gray-700">{t.foundation}</p>
+          <h1 className="font-heading text-3xl font-bold text-gray-900">{t.appName}</h1>
+        </div>
 
-      <div className="relative grid min-h-dvh grid-cols-1 lg:grid-cols-[1.1fr_1fr]">
-
-        {/* Left branding panel — sits over the green area */}
-        <section className="hidden flex-col justify-center p-10 text-gray-500 lg:flex">
-          {/* Islamic decorative border with lanterns */}
-          <div className="pointer-events-none absolute inset-0 opacity-12">
-            <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <g id="lantern">
-                  <ellipse cx="0" cy="1" rx="0.8" ry="0.4" fill="white" />
-                  <rect x="-0.6" y="1" width="1.2" height="2" fill="white" />
-                  <ellipse cx="0" cy="3" rx="0.8" ry="0.4" fill="white" />
-                  <rect x="-0.3" y="0.3" width="0.6" height="0.7" fill="white" opacity="0.6" />
-                  <line x1="0" y1="3.4" x2="0" y2="4" stroke="white" strokeWidth="0.1" />
-                </g>
-              </defs>
-              
-              {/* Top border with hanging lanterns */}
-              <g transform="translate(10, 2)">
-                <use href="#lantern" transform="scale(0.8)" />
-              </g>
-              <g transform="translate(30, 1.5)">
-                <use href="#lantern" transform="scale(1)" />
-              </g>
-              <g transform="translate(50, 1)">
-                <use href="#lantern" transform="scale(1.2)" />
-              </g>
-              <g transform="translate(70, 1.5)">
-                <use href="#lantern" transform="scale(1)" />
-              </g>
-              <g transform="translate(90, 2)">
-                <use href="#lantern" transform="scale(0.8)" />
-              </g>
-              
-              {/* Top decorative wave */}
-              <path d="M 0,5 Q 25,7 50,5 Q 75,3 100,5 L 100,0 L 0,0 Z" fill="white" opacity="0.15" />
-              <path d="M 0,6 Q 20,8 40,6 Q 60,4 80,6 Q 90,7 100,6" fill="none" stroke="white" strokeWidth="0.2" opacity="0.3" />
-              
-              {/* Corner ornaments */}
-              <circle cx="3" cy="3" r="1.5" fill="white" opacity="0.3" />
-              <circle cx="97" cy="3" r="1.5" fill="white" opacity="0.3" />
-              <circle cx="3" cy="97" r="1.5" fill="white" opacity="0.3" />
-              <circle cx="97" cy="97" r="1.5" fill="white" opacity="0.3" />
-              
-              {/* Side decorative patterns */}
-              <path d="M 0,20 Q 2,20 2,22 Q 2,24 0,24" fill="white" opacity="0.2" />
-              <path d="M 0,40 Q 2,40 2,42 Q 2,44 0,44" fill="white" opacity="0.2" />
-              <path d="M 0,60 Q 2,60 2,62 Q 2,64 0,64" fill="white" opacity="0.2" />
-              <path d="M 0,80 Q 2,80 2,82 Q 2,84 0,84" fill="white" opacity="0.2" />
-              
-              <path d="M 100,20 Q 98,20 98,22 Q 98,24 100,24" fill="white" opacity="0.2" />
-              <path d="M 100,40 Q 98,40 98,42 Q 98,44 100,44" fill="white" opacity="0.2" />
-              <path d="M 100,60 Q 98,60 98,62 Q 98,64 100,64" fill="white" opacity="0.2" />
-              <path d="M 100,80 Q 98,80 98,82 Q 98,84 100,84" fill="white" opacity="0.2" />
-              
-              {/* Bottom decorative wave */}
-              <path d="M 0,95 Q 25,93 50,95 Q 75,97 100,95 L 100,100 L 0,100 Z" fill="white" opacity="0.15" />
-            </svg>
-          </div>
-          
-          {/* Falling stars and crescents animation */}
-          <div className="pointer-events-none absolute inset-0 overflow-hidden">
-            {[...Array(15)].map((_, i) => (
-              <div
-                key={i}
-                className="absolute animate-fall"
-                style={{
-                  left: `${Math.random() * 100}%`,
-                  animationDelay: `${i * 1.5}s`,
-                  animationDuration: `${8 + Math.random() * 4}s`,
-                }}
-              >
-                <div className="relative">
-                  {/* Tail effect */}
-                  <div className="absolute left-1/2 top-0 h-12 w-0.5 -translate-x-1/2 bg-gradient-to-b from-white/60 to-transparent blur-sm" />
-                  
-                  {/* Main icon */}
-                  <div className="relative opacity-70">
-                    {i % 3 === 0 ? (
-                      <svg width="24" height="24" viewBox="0 0 24 24" className="drop-shadow-[0_0_16px_rgba(255,255,255,1)] [filter:drop-shadow(0_0_8px_rgba(255,255,255,0.8))_drop-shadow(0_0_24px_rgba(255,255,255,0.6))]">
-                        <path
-                          d="M12 2l2.4 7.2h7.6l-6 4.8 2.4 7.2-6-4.8-6 4.8 2.4-7.2-6-4.8h7.6z"
-                          fill="white"
-                          fillOpacity="0.9"
-                        />
-                      </svg>
-                    ) : i % 3 === 1 ? (
-                      <svg width="24" height="24" viewBox="0 0 24 24" className="drop-shadow-[0_0_16px_rgba(255,255,255,1)] [filter:drop-shadow(0_0_10px_rgba(255,255,255,0.9))_drop-shadow(0_0_28px_rgba(255,255,255,0.5))]">
-                        <path
-                          d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"
-                          fill="white"
-                          fillOpacity="0.85"
-                        />
-                      </svg>
-                    ) : (
-                      <svg width="24" height="24" viewBox="0 0 24 24" className="drop-shadow-[0_0_16px_rgba(255,255,255,1)] [filter:drop-shadow(0_0_10px_rgba(255,255,255,0.9))_drop-shadow(0_0_28px_rgba(255,255,255,0.5))]">
-                        <path
-                          d="M20 12c-4.4 0-8 3.6-8 8 0-4.4-3.6-8-8-8 4.4 0 8-3.6 8-8 0 4.4 3.6 8 8 8z"
-                          fill="white"
-                          fillOpacity="0.85"
-                        />
-                      </svg>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-          
-          <div className="absolute left-10 top-10 flex items-center gap-3">
-            <BrandMark size={48} />
-            <div className="leading-tight">
-              <p className="text-sm/5">{t.foundation}</p>
-              <p className="font-heading text-lg font-bold">{t.appName}</p>
-            </div>
-          </div>
-
-          <div className="max-w-md space-y-6">
-            <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-medium">
-              <Sparkles className="size-3.5" />
-              {t.aiAssistant}
-            </span>
-            <h1 className="text-balance font-heading text-4xl font-bold leading-tight">
-              {t.trustKnowledge}
-            </h1>
-            <p className="text-pretty leading-relaxed">
-              {t.signInDesc}
-            </p>
-
-            <div className="space-y-4">
-              {highlights.map((item) => (
-                <div key={item.title} className="flex items-start gap-3">
-                  <span className="mt-0.5 inline-flex size-9 shrink-0 items-center justify-center rounded-lg bg-white/15">
-                    <item.icon className="size-5" />
-                  </span>
-                  <div>
-                    <p className="font-semibold">{item.title}</p>
-                    <p className="text-sm">{item.desc}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-        </section>
-
-        {/* Right form panel — sits over the white area */}
-        <section className="relative flex min-h-dvh items-center justify-center overflow-y-auto px-6 py-8">
-          <div className="w-full max-w-sm">
-          <div className="mb-8 flex flex-col items-center text-center lg:hidden">
-            <BrandMark size={56} />
-            <p className="mt-3 text-sm text-gray-700">{t.foundation}</p>
-            <h1 className="font-heading text-2xl font-bold text-gray-900">{t.appName}</h1>
-          </div>
-
-          <div className="rounded-2xl border-2 border-white/40 bg-white/25 p-7 shadow-2xl backdrop-blur-xl">
+        <div className="rounded-2xl border-2 border-white/40 bg-white/25 p-20 shadow-2xl backdrop-blur-xl">
             {mode === "otp" ? (
               <button
                 type="button"
@@ -584,9 +431,6 @@ export function LoginScreen({
             ) : null}
           </div>
         </div>
-        </section>
-
-      </div>
 
       {/* Copyright footer - bottom center */}
       <div className="absolute bottom-0 left-0 right-0 pb-4 text-center">
