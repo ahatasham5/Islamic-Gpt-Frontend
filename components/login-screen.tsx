@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import type { AuthSession } from "@/lib/types"
 import type { LoginFormValues, OtpFormValues, SignupFormValues } from "@/lib/validation/auth"
 import { getValidationMessage, loginSchema, otpSchema, resendOtpSchema, signupSchema } from "@/lib/validation/auth"
+import { useLanguage } from "@/lib/language-context"
 import {
   ArrowLeft,
   BookOpen,
@@ -18,23 +19,80 @@ import {
   User,
 } from "lucide-react"
 
-const highlights = [
-  {
-    icon: MessageCircleQuestion,
-    title: "স্পষ্টভাবে প্রশ্ন করুন",
-    desc: "বাংলা বা ইংরেজিতে প্রশ্ন জমা দিন এবং উল্লেখিত সূত্র অনুসরণ করুন।",
+const translations = {
+  bn: {
+    foundation: "As-Sunnah Foundation",
+    appName: "Islamic GPT",
+    aiAssistant: "এআই চালিত জ্ঞান সহায়ক",
+    trustKnowledge: "বিশ্বাসযোগ্য ইসলামিক জ্ঞান যাচাইকৃত প্রবেশাধিকারে",
+    signInDesc: "প্রশ্ন করতে, রেফারেন্স পর্যালোচনা করতে এবং আপনার আগের কথোপকথন চালিয়ে যেতে সাইন ইন করুন।",
+    highlight1Title: "স্পষ্টভাবে প্রশ্ন করুন",
+    highlight1Desc: "বাংলা বা ইংরেজিতে প্রশ্ন জমা দিন এবং উল্লেখিত সূত্র অনুসরণ করুন।",
+    highlight2Title: "বিশ্বস্ত রেফারেন্স",
+    highlight2Desc: "ইসলামিক জ্ঞান লাইব্রেরির সাথে যুক্ত তথ্যসূত্র থেকে উত্তর প্রদান করা হয়।",
+    highlight3Title: "যাচাইকৃত প্রবেশাধিকার",
+    highlight3Desc: "নতুন অ্যাকাউন্ট ইমেইল ওটিপি দিয়ে সাইন ইন করার আগে যাচাই করা হয়।",
+    signIn: "সাইন ইন",
+    signUp: "সাইন আপ",
+    greeting: "আসসালামু আলাইকুম",
+    createAccount: "আপনার অ্যাকাউন্ট তৈরি করুন",
+    verifyOtp: "ওটিপি যাচাই করুন",
+    useEmailPassword: "আপনার নিবন্ধিত ইমেইল এবং পাসওয়ার্ড ব্যবহার করুন।",
+    enterDetails: "আপনার বিবরণ লিখুন। আমরা আপনার ইমেইলে একটি ৬-সংখ্যার ওটিপি পাঠাব।",
+    otpSent: "আমরা",
+    otpSentEnd: "একটি ওটিপি পাঠিয়েছি।",
+    email: "ইমেইল",
+    password: "পাসওয়ার্ড",
+    name: "নাম",
+    otp: "ওটিপি",
+    emailPlaceholder: "আপনার ইমেইল",
+    passwordPlaceholder: "আপনার পাসওয়ার্ড লিখুন",
+    createPasswordPlaceholder: "একটি পাসওয়ার্ড তৈরি করুন",
+    namePlaceholder: "আপনার পুরো নাম",
+    otpPlaceholder: "৬-সংখ্যার কোড",
+    sendOtp: "ওটিপি পাঠান",
+    verifyAccount: "অ্যাকাউন্ট যাচাই করুন",
+    resendOtp: "পুনরায় ওটিপি পাঠান",
+    backToSignup: "সাইন আপ এ ফিরে যান",
+    copyright: "© {year} As-Sunnah Foundation. All rights reserved.",
   },
-  {
-    icon: BookOpen,
-    title: "বিশ্বস্ত রেফারেন্স",
-    desc: "ইসলামিক জ্ঞান লাইব্রেরির সাথে যুক্ত তথ্যসূত্র থেকে উত্তর প্রদান করা হয়।",
+  en: {
+    foundation: "As-Sunnah Foundation",
+    appName: "Islamic GPT",
+    aiAssistant: "AI-Powered Knowledge Assistant",
+    trustKnowledge: "Trusted Islamic Knowledge with Verified Access",
+    signInDesc: "Sign in to ask questions, review references, and continue your previous conversations.",
+    highlight1Title: "Ask Questions Clearly",
+    highlight1Desc: "Submit questions in Bengali or English and follow the cited sources.",
+    highlight2Title: "Trusted References",
+    highlight2Desc: "Answers provided from sources linked to the Islamic knowledge library.",
+    highlight3Title: "Verified Access",
+    highlight3Desc: "New accounts are verified with email OTP before signing in.",
+    signIn: "Sign In",
+    signUp: "Sign Up",
+    greeting: "Assalamu Alaikum",
+    createAccount: "Create Your Account",
+    verifyOtp: "Verify OTP",
+    useEmailPassword: "Use your registered email and password.",
+    enterDetails: "Enter your details. We will send a 6-digit OTP to your email.",
+    otpSent: "We sent an OTP to",
+    otpSentEnd: "",
+    email: "Email",
+    password: "Password",
+    name: "Name",
+    otp: "OTP",
+    emailPlaceholder: "your email",
+    passwordPlaceholder: "Enter your password",
+    createPasswordPlaceholder: "Create a password",
+    namePlaceholder: "Your full name",
+    otpPlaceholder: "6-digit code",
+    sendOtp: "Send OTP",
+    verifyAccount: "Verify Account",
+    resendOtp: "Resend OTP",
+    backToSignup: "Back to Sign Up",
+    copyright: "© {year} As-Sunnah Foundation. All rights reserved.",
   },
-  {
-    icon: ShieldCheck,
-    title: "যাচাইকৃত প্রবেশাধিকার",
-    desc: "নতুন অ্যাকাউন্ট ইমেইল ওটিপি দিয়ে সাইন ইন করার আগে যাচাই করা হয়।",
-  },
-]
+}
 
 type AuthMode = "signin" | "signup" | "otp"
 
@@ -61,6 +119,27 @@ export function LoginScreen({
   onVerifyOtp,
   onResendOtp,
 }: LoginScreenProps) {
+  const { language } = useLanguage()
+  const t = translations[language]
+  
+  const highlights = [
+    {
+      icon: MessageCircleQuestion,
+      title: t.highlight1Title,
+      desc: t.highlight1Desc,
+    },
+    {
+      icon: BookOpen,
+      title: t.highlight2Title,
+      desc: t.highlight2Desc,
+    },
+    {
+      icon: ShieldCheck,
+      title: t.highlight3Title,
+      desc: t.highlight3Desc,
+    },
+  ]
+  
   const [mode, setMode] = useState<AuthMode>("signin")
   const [signinForm, setSigninForm] = useState<LoginFormValues>({ email: "", password: "" })
   const [signupForm, setSignupForm] = useState<SignupFormValues>({ name: "", email: "", password: "" })
@@ -278,21 +357,21 @@ export function LoginScreen({
           <div className="absolute left-10 top-10 flex items-center gap-3">
             <BrandMark size={48} />
             <div className="leading-tight">
-              <p className="text-sm/5">As-Sunnah Foundation</p>
-              <p className="font-heading text-lg font-bold">Islamic GPT</p>
+              <p className="text-sm/5">{t.foundation}</p>
+              <p className="font-heading text-lg font-bold">{t.appName}</p>
             </div>
           </div>
 
           <div className="max-w-md space-y-6">
             <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-medium">
               <Sparkles className="size-3.5" />
-              এআই চালিত জ্ঞান সহায়ক
+              {t.aiAssistant}
             </span>
             <h1 className="text-balance font-heading text-4xl font-bold leading-tight">
-              বিশ্বাসযোগ্য ইসলামিক জ্ঞান যাচাইকৃত প্রবেশাধিকারে
+              {t.trustKnowledge}
             </h1>
             <p className="text-pretty leading-relaxed">
-              প্রশ্ন করতে, রেফারেন্স পর্যালোচনা করতে এবং আপনার আগের কথোপকথন চালিয়ে যেতে সাইন ইন করুন।
+              {t.signInDesc}
             </p>
 
             <div className="space-y-4">
@@ -317,8 +396,8 @@ export function LoginScreen({
           <div className="w-full max-w-sm">
           <div className="mb-8 flex flex-col items-center text-center lg:hidden">
             <BrandMark size={56} />
-            <p className="mt-3 text-sm text-gray-700">As-Sunnah Foundation</p>
-            <h1 className="font-heading text-2xl font-bold text-gray-900">Islamic GPT</h1>
+            <p className="mt-3 text-sm text-gray-700">{t.foundation}</p>
+            <h1 className="font-heading text-2xl font-bold text-gray-900">{t.appName}</h1>
           </div>
 
           <div className="rounded-2xl border-2 border-white/40 bg-white/25 p-7 shadow-2xl backdrop-blur-xl">
@@ -329,7 +408,7 @@ export function LoginScreen({
                 className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-gray-700 transition hover:text-gray-900 cursor-pointer"
               >
                 <ArrowLeft className="size-4" />
-                সাইন আপ এ ফিরে যান
+                {t.backToSignup}
               </button>
             ) : (
               <div className="mb-5 grid grid-cols-2 rounded-xl border border-white/30 bg-white/15 p-1 backdrop-blur-sm">
@@ -340,7 +419,7 @@ export function LoginScreen({
                     mode === "signin" ? "bg-white/30 text-gray-900 shadow-sm backdrop-blur-sm border-2 border-[#64C859]" : "text-gray-700 hover:text-gray-900"
                   }`}
                 >
-                  সাইন ইন
+                  {t.signIn}
                 </button>
                 <button
                   type="button"
@@ -349,20 +428,20 @@ export function LoginScreen({
                     mode === "signup" ? "bg-white/30 text-gray-900 shadow-sm backdrop-blur-sm border-2 border-[#64C859]" : "text-gray-700 hover:text-gray-900"
                   }`}
                 >
-                  সাইন আপ
+                  {t.signUp}
                 </button>
               </div>
             )}
 
             <h2 className="font-heading text-xl font-bold text-gray-800 text-center">
-              {mode === "signin" ? "আসসালামু আলাইকুম" : mode === "signup" ? "আপনার অ্যাকাউন্ট তৈরি করুন" : "ওটিপি যাচাই করুন"}
+              {mode === "signin" ? t.greeting : mode === "signup" ? t.createAccount : t.verifyOtp}
             </h2>
             <p className="mt-1 text-sm text-gray-700 text-center">
               {mode === "signin"
-                ? "আপনার নিবন্ধিত ইমেইল এবং পাসওয়ার্ড ব্যবহার করুন।"
+                ? t.useEmailPassword
                 : mode === "signup"
-                  ? "আপনার বিবরণ লিখুন। আমরা আপনার ইমেইলে একটি ৬-সংখ্যার ওটিপি পাঠাব।"
-                  : `আমরা ${otpForm.email || "আপনার ইমেইলে"} একটি ওটিপি পাঠিয়েছি।`}
+                  ? t.enterDetails
+                  : `${t.otpSent} ${otpForm.email || language === "bn" ? "আপনার ইমেইলে" : "your email"}${t.otpSentEnd ? ` ${t.otpSentEnd}` : "."}`}
             </p>
 
             {visibleError ? (
@@ -381,10 +460,10 @@ export function LoginScreen({
               <form className="mt-6 space-y-4" onSubmit={handleSignin}>
                 <TextField
                   id="signin-email"
-                  label="ইমেইল"
+                  label={t.email}
                   type="email"
                   icon={Mail}
-                  placeholder="আপনার ইমেইল"
+                  placeholder={t.emailPlaceholder}
                   value={signinForm.email}
                   onChange={(value) => setSigninForm((current) => ({ ...current, email: value }))}
                   disabled={isBusy}
@@ -392,10 +471,10 @@ export function LoginScreen({
                 />
                 <TextField
                   id="signin-password"
-                  label="পাসওয়ার্ড"
+                  label={t.password}
                   type="password"
                   icon={Lock}
-                  placeholder="আপনার পাসওয়ার্ড লিখুন"
+                  placeholder={t.passwordPlaceholder}
                   value={signinForm.password}
                   onChange={(value) => setSigninForm((current) => ({ ...current, password: value }))}
                   disabled={isBusy}
@@ -406,7 +485,7 @@ export function LoginScreen({
                   <span className="inline-flex size-4 items-center justify-center">
                     {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : null}
                   </span>
-                  সাইন ইন
+                  {t.signIn}
                 </Button>
               </form>
             ) : null}
@@ -415,10 +494,10 @@ export function LoginScreen({
               <form className="mt-6 space-y-4" onSubmit={handleSignup}>
                 <TextField
                   id="signup-name"
-                  label="নাম"
+                  label={t.name}
                   type="text"
                   icon={User}
-                  placeholder="আপনার পুরো নাম"
+                  placeholder={t.namePlaceholder}
                   value={signupForm.name}
                   onChange={(value) => setSignupForm((current) => ({ ...current, name: value }))}
                   disabled={isBusy}
@@ -426,10 +505,10 @@ export function LoginScreen({
                 />
                 <TextField
                   id="signup-email"
-                  label="ইমেইল"
+                  label={t.email}
                   type="email"
                   icon={Mail}
-                  placeholder="আপনার ইমেইল"
+                  placeholder={t.emailPlaceholder}
                   value={signupForm.email}
                   onChange={(value) => setSignupForm((current) => ({ ...current, email: value }))}
                   disabled={isBusy}
@@ -437,10 +516,10 @@ export function LoginScreen({
                 />
                 <TextField
                   id="signup-password"
-                  label="পাসওয়ার্ড"
+                  label={t.password}
                   type="password"
                   icon={Lock}
-                  placeholder="একটি পাসওয়ার্ড তৈরি করুন"
+                  placeholder={t.createPasswordPlaceholder}
                   value={signupForm.password}
                   onChange={(value) => setSignupForm((current) => ({ ...current, password: value }))}
                   disabled={isBusy}
@@ -451,7 +530,7 @@ export function LoginScreen({
                   <span className="inline-flex size-4 items-center justify-center">
                     {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : null}
                   </span>
-                  ওটিপি পাঠান
+                  {t.sendOtp}
                 </Button>
               </form>
             ) : null}
@@ -460,10 +539,10 @@ export function LoginScreen({
               <form className="mt-6 space-y-4" onSubmit={handleVerifyOtp}>
                 <TextField
                   id="otp-email"
-                  label="ইমেইল"
+                  label={t.email}
                   type="email"
                   icon={Mail}
-                  placeholder="আপনার ইমেইল"
+                  placeholder={t.emailPlaceholder}
                   value={otpForm.email}
                   onChange={(value) => setOtpForm((current) => ({ ...current, email: value }))}
                   disabled={isBusy}
@@ -471,10 +550,10 @@ export function LoginScreen({
                 />
                 <TextField
                   id="otp-code"
-                  label="ওটিপি"
+                  label={t.otp}
                   type="text"
                   icon={ShieldCheck}
-                  placeholder="৬-সংখ্যার কোড"
+                  placeholder={t.otpPlaceholder}
                   value={otpForm.otp}
                   onChange={(value) => setOtpForm((current) => ({ ...current, otp: value.replace(/\D/g, "").slice(0, 6) }))}
                   disabled={isBusy}
@@ -487,7 +566,7 @@ export function LoginScreen({
                   <span className="inline-flex size-4 items-center justify-center">
                     {isVerifying ? <Loader2 className="size-4 animate-spin" /> : null}
                   </span>
-                  অ্যাকাউন্ট যাচাই করুন
+                  {t.verifyAccount}
                 </Button>
                 <Button
                   type="button"
@@ -499,7 +578,7 @@ export function LoginScreen({
                   <span className="inline-flex size-4 items-center justify-center">
                     {isResending ? <Loader2 className="size-4 animate-spin" /> : null}
                   </span>
-                  পুনরায় ওটিপি পাঠান
+                  {t.resendOtp}
                 </Button>
               </form>
             ) : null}
@@ -512,7 +591,7 @@ export function LoginScreen({
       {/* Copyright footer - bottom center */}
       <div className="absolute bottom-0 left-0 right-0 pb-4 text-center">
         <p className="text-xs font-bold text-gray-500">
-          © {new Date().getFullYear()} As-Sunnah Foundation. All rights reserved.
+          {t.copyright.replace("{year}", new Date().getFullYear().toString())}
         </p>
       </div>
     </main>
