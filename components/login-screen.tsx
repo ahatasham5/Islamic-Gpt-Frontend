@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react"
+import { useState, useEffect, type FormEvent } from "react"
 import { BrandMark } from "@/components/brand-mark"
 import { Button } from "@/components/ui/button"
 import type { AuthSession } from "@/lib/types"
@@ -146,6 +146,14 @@ export function LoginScreen({
   const [otpForm, setOtpForm] = useState<OtpFormValues>({ email: "", otp: "" })
   const [formError, setFormError] = useState("")
   const [message, setMessage] = useState("")
+  const [countdown, setCountdown] = useState(0)
+
+  useEffect(() => {
+    if (countdown > 0) {
+      const timer = setTimeout(() => setCountdown(countdown - 1), 1000)
+      return () => clearTimeout(timer)
+    }
+  }, [countdown])
 
   const visibleError = formError || apiError
   const isBusy = isSubmitting || isVerifying || isResending
@@ -189,10 +197,11 @@ export function LoginScreen({
     }
 
     try {
-      await onSignup(result.data)
+      const backendMsg = await onSignup(result.data)
       setOtpForm({ email: result.data.email, otp: "" })
       setMode("otp")
-      setMessage("OTP sent to your email. Enter the 6-digit code to verify your account.")
+      setMessage(typeof backendMsg === "string" ? backendMsg : "")
+      setCountdown(90)
     } catch {
       // The auth hook exposes backend errors through apiError.
     }
@@ -209,11 +218,11 @@ export function LoginScreen({
     }
 
     try {
-      await onVerifyOtp(result.data)
+      const verifyRes = await onVerifyOtp(result.data)
       setSigninForm((current) => ({ ...current, email: result.data.email, password: "" }))
       setOtpForm({ email: result.data.email, otp: "" })
       setMode("signin")
-      setMessage("Account verified. Please sign in with your email and password.")
+      setMessage((verifyRes as any)?.message || "")
     } catch {
       // The auth hook exposes backend errors through apiError.
     }
@@ -229,8 +238,9 @@ export function LoginScreen({
     }
 
     try {
-      await onResendOtp(result.data.email)
-      setMessage("A new OTP has been sent to your email.")
+      const backendMsg = await onResendOtp(result.data.email)
+      setMessage(typeof backendMsg === "string" ? backendMsg : "")
+      setCountdown(90)
     } catch {
       // The auth hook exposes backend errors through apiError.
     }
@@ -419,14 +429,14 @@ export function LoginScreen({
                 <Button
                   type="button"
                   variant="ghost"
-                  disabled={isResending}
+                  disabled={isResending || countdown > 0}
                   onClick={handleResendOtp}
                   className="h-10 w-full rounded-xl cursor-pointer"
                 >
                   <span className="inline-flex size-4 items-center justify-center">
                     {isResending ? <Loader2 className="size-4 animate-spin" /> : null}
                   </span>
-                  {t.resendOtp}
+                  {countdown > 0 ? `${t.resendOtp} (${countdown}s)` : t.resendOtp}
                 </Button>
               </form>
             ) : null}

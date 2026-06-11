@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react"
 import { authApi } from "@/lib/api/auth"
+import { usersApi } from "@/lib/api/users"
 import { getApiErrorMessage, setAuthToken } from "@/lib/http"
 import type { AuthSession, Token, UserCreate, UserLogin, VerifyOTP } from "@/lib/types"
 
@@ -32,26 +33,41 @@ export function useAuth() {
   const [error, setError] = useState("")
 
   useEffect(() => {
-    try {
-      const stored = window.localStorage.getItem(STORAGE_KEY)
+    async function restoreSession() {
+      try {
+        const stored = window.localStorage.getItem(STORAGE_KEY)
 
-      if (stored) {
-        const parsed = JSON.parse(stored) as AuthSession
+        if (stored) {
+          const parsed = JSON.parse(stored) as AuthSession
 
-        if (parsed?.accessToken && parsed?.user?.email) {
-          setSession(parsed)
-          setAuthToken(parsed.accessToken)
-        } else {
-          saveSession(null)
-          setAuthToken(null)
+          if (parsed?.accessToken && parsed?.user?.email) {
+            setAuthToken(parsed.accessToken)
+            try {
+              const freshUser = await usersApi.getMe()
+              const freshSession = { ...parsed, user: freshUser }
+              setSession(freshSession)
+              saveSession(freshSession)
+            } catch (err) {
+              setSession(null)
+              saveSession(null)
+              setAuthToken(null)
+            }
+          } else {
+            setSession(null)
+            saveSession(null)
+            setAuthToken(null)
+          }
         }
+      } catch {
+        setSession(null)
+        saveSession(null)
+        setAuthToken(null)
+      } finally {
+        setIsRestoring(false)
       }
-    } catch {
-      saveSession(null)
-      setAuthToken(null)
-    } finally {
-      setIsRestoring(false)
     }
+
+    restoreSession()
   }, [])
 
   const login = useCallback(async (payload: UserLogin) => {
@@ -60,10 +76,16 @@ export function useAuth() {
 
     try {
       const token = await authApi.login(payload)
-      const nextSession = tokenToSession(token)
+      setAuthToken(token.access_token)
+      
+      const freshUser = await usersApi.getMe()
+      const nextSession: AuthSession = {
+        accessToken: token.access_token,
+        tokenType: token.token_type,
+        user: freshUser,
+      }
 
       setSession(nextSession)
-      setAuthToken(nextSession.accessToken)
       saveSession(nextSession)
 
       return nextSession
@@ -81,7 +103,8 @@ export function useAuth() {
     setIsSubmitting(true)
 
     try {
-      await authApi.signup(payload)
+      const response = await authApi.signup(payload)
+      return response
     } catch (error) {
       const message = getApiErrorMessage(error)
       setError(message)
@@ -111,7 +134,8 @@ export function useAuth() {
     setIsResending(true)
 
     try {
-      await authApi.resendOtp({ email })
+      const response = await authApi.resendOtp({ email })
+      return response
     } catch (error) {
       const message = getApiErrorMessage(error)
       setError(message)
