@@ -1,10 +1,10 @@
-import { useEffect, useRef, type FormEvent } from "react"
+import { useEffect, useRef, useState, type FormEvent } from "react"
 import { BrandMark } from "@/components/brand-mark"
 import { StreamingAnswer } from "@/components/streaming-answer"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { confidenceLabels, type DraftConversation, type ChatTurn, type ServerState } from "@/lib/app-types"
-import { ArrowUp, BookOpen, FileSearch, Menu, PanelRightOpen, ShieldQuestion, Sparkles } from "lucide-react"
+import { ArrowUp, BookOpen, Check, Copy, FileSearch, Menu, PanelRightClose, PanelRightOpen, ShieldQuestion, Sparkles } from "lucide-react"
 
 const confidenceStyles: Record<string, string> = {
   high: "bg-accent text-accent-foreground",
@@ -45,7 +45,8 @@ export function ChatMain({
   onSelectTurn,
   onStreamDone,
   onOpenMobileMenu,
-  onOpenSources,
+  onToggleSources,
+  isSourcesOpen,
 }: {
   conversation: DraftConversation | undefined
   selectedTurnId: string | null
@@ -60,15 +61,31 @@ export function ChatMain({
   onSelectTurn: (id: string) => void
   onStreamDone: () => void
   onOpenMobileMenu: () => void
-  onOpenSources: () => void
+  onToggleSources: () => void
+  isSourcesOpen: boolean
 }) {
   const scrollRef = useRef<HTMLDivElement | null>(null)
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null)
   const turns = conversation?.turns ?? []
   const hasMessages = turns.length > 0 || Boolean(pendingQuestion)
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" })
   }, [pendingQuestion, turns.length, isAsking])
+
+  useEffect(() => {
+    adjustTextareaHeight()
+  }, [query])
+
+  function adjustTextareaHeight() {
+    const textarea = textareaRef.current
+    if (!textarea) return
+    
+    // Reset height to auto to get the correct scrollHeight
+    textarea.style.height = "auto"
+    // Set height to scrollHeight to fit content
+    textarea.style.height = Math.min(textarea.scrollHeight, 160) + "px"
+  }
 
   function handleSuggestion(text: string) {
     onQueryChange(text)
@@ -107,14 +124,6 @@ export function ChatMain({
             <span className={cn("size-2 rounded-full", serverDot[serverState])} />
             {serverLabel[serverState]}
           </span>
-          <button
-            type="button"
-            onClick={onOpenSources}
-            className="inline-flex size-9 items-center justify-center rounded-lg border border-border text-muted-foreground xl:hidden"
-            aria-label="তথ্যসূত্র দেখুন"
-          >
-            <PanelRightOpen className="size-5" />
-          </button>
         </div>
       </header>
 
@@ -148,7 +157,7 @@ export function ChatMain({
             </div>
           </div>
         ) : (
-          <div className="mx-auto max-w-3xl space-y-8">
+          <div className="mx-auto max-w-3xl space-y-10">
             {turns.map((turn) => (
               <TurnBlock
                 key={turn.id}
@@ -190,15 +199,13 @@ export function ChatMain({
 
           <div className="flex items-end gap-2 rounded-2xl border border-border bg-card p-2 shadow-sm transition focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/20">
             <textarea
+              ref={textareaRef}
               dir="auto"
-              rows={1}
-              maxLength={500}
-              minLength={5}
               value={query}
               onChange={(e) => onQueryChange(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="আপনার প্রশ্ন লিখুন..."
-              className="max-h-40 min-h-10 min-w-0 flex-1 resize-none bg-transparent px-2.5 py-2 text-sm leading-relaxed outline-none placeholder:text-muted-foreground"
+              className="min-h-10 max-h-40 min-w-0 flex-1 resize-none overflow-y-auto bg-transparent px-2.5 py-2 text-sm leading-relaxed outline-none placeholder:text-muted-foreground"
             />
             <button
               type="submit"
@@ -223,7 +230,7 @@ function UserQuestionBubble({ question }: { question: string }) {
     <div className="flex justify-end">
       <div
         dir="auto"
-        className="max-w-[85%] rounded-2xl rounded-tr-sm bg-primary px-4 py-2.5 text-sm leading-relaxed text-primary-foreground shadow-sm"
+        className="max-w-[85%] sm:max-w-[75%] rounded-3xl rounded-tr-sm bg-secondary px-5 py-3 text-base leading-relaxed text-foreground"
       >
         {question}
       </div>
@@ -244,16 +251,50 @@ function TurnBlock({
   onSelect: () => void
   onStreamDone: () => void
 }) {
+  const [copied, setCopied] = useState(false)
+
+  function handleCopyAnswer() {
+    navigator.clipboard.writeText(turn.response.answer)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
   return (
-    <article className="animate-fade-rise space-y-4">
+    <article className="animate-fade-rise space-y-6">
       {/* User question */}
       <UserQuestionBubble question={turn.question} />
 
       {/* Assistant answer */}
-      <div className="flex items-start gap-3">
-        <BrandMark size={36} />
-        <div className="min-w-0 flex-1 rounded-2xl rounded-tl-sm border border-border bg-card p-4 shadow-sm">
-          <div className="mb-3 flex flex-wrap items-center gap-2">
+      <div className="flex items-start gap-4">
+        <div className="mt-1 shrink-0">
+          <BrandMark size={32} />
+        </div>
+        <div className="min-w-0 flex-1 space-y-4">
+          <StreamingAnswer
+            shouldStream={isStreaming}
+            text={turn.response.answer}
+            onDone={onStreamDone}
+          />
+
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              onClick={handleCopyAnswer}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-semibold text-muted-foreground transition hover:bg-accent/40"
+              title="উত্তর কপি করুন"
+            >
+              {copied ? (
+                <>
+                  <Check className="size-3.5" />
+                  কপি হয়েছে
+                </>
+              ) : (
+                <>
+                  <Copy className="size-3.5" />
+                  কপি করুন
+                </>
+              )}
+            </button>
             <Badge
               className={cn(
                 "gap-1.5 border-0 text-xs font-medium",
@@ -273,22 +314,16 @@ function TurnBlock({
               type="button"
               onClick={onSelect}
               className={cn(
-                "ml-auto inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold transition",
+                "inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm font-semibold transition",
                 isSelected
-                  ? "bg-accent text-accent-foreground"
-                  : "text-primary hover:bg-accent/60",
+                  ? "border-primary/40 bg-accent/60 text-primary shadow-sm hover:bg-accent"
+                  : "border-border bg-card text-muted-foreground hover:bg-accent/40",
               )}
             >
-              <FileSearch className="size-3.5" />
-              {turn.response.sources.length} টি উৎস
+              <FileSearch className="size-4" />
+              তথ্যসূত্র দেখুন ({turn.response.sources.length})
             </button>
           </div>
-
-          <StreamingAnswer
-            shouldStream={isStreaming}
-            text={turn.response.answer}
-            onDone={onStreamDone}
-          />
         </div>
       </div>
     </article>

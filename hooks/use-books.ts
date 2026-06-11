@@ -9,6 +9,9 @@ export function useBooks(enabled: boolean) {
   const [uploadMessage, setUploadMessage] = useState("")
   const [isUploading, setIsUploading] = useState(false)
   const [deletingBookId, setDeletingBookId] = useState<string | null>(null)
+  const [page, setPage] = useState(1)
+  const [size, setSize] = useState(10)
+  const [total, setTotal] = useState(0)
 
   const loadBooks = useCallback(async () => {
     if (!enabled) return
@@ -16,14 +19,15 @@ export function useBooks(enabled: boolean) {
     setIsLoadingBooks(true)
 
     try {
-      const response = await booksApi.list()
+      const response = await booksApi.list(page, size)
       setBooks(response.books)
+      setTotal(response.total)
     } catch (error) {
       setUploadMessage(getApiErrorMessage(error))
     } finally {
       setIsLoadingBooks(false)
     }
-  }, [enabled])
+  }, [enabled, page, size])
 
   useEffect(() => {
     if (!enabled) {
@@ -76,6 +80,11 @@ export function useBooks(enabled: boolean) {
     uploadMessage,
     isUploading,
     deletingBookId,
+    page,
+    size,
+    total,
+    setPage,
+    setSize,
     setUploadMessage,
     loadBooks,
     uploadBook,

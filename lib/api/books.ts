@@ -2,10 +2,10 @@ import { apiRequest } from "@/lib/http"
 import type { BookListResponse, BookUploadResponse } from "@/lib/types"
 
 export const booksApi = {
-  list() {
+  list(page: number = 1, size: number = 10) {
     return apiRequest<BookListResponse>({
       method: "GET",
-      url: "/books",
+      url: `/books?page=${page}&size=${size}`,
     })
   },
 

@@ -2,7 +2,7 @@ import { Badge } from "@/components/ui/badge"
 import { percent } from "@/lib/format"
 import { type ChatTurn, relevanceLabels } from "@/lib/app-types"
 import type { Source } from "@/lib/types"
-import { FileText, Languages, Layers, Library, ScrollText, Sparkles } from "lucide-react"
+import { FileText, Languages, Layers, Library, ScrollText, Sparkles, X } from "lucide-react"
 
 const relevanceStyles: Record<"high" | "medium" | "low", string> = {
   high: "bg-accent text-accent-foreground",
@@ -13,22 +13,36 @@ const relevanceStyles: Record<"high" | "medium" | "low", string> = {
 export function SourcesPanel({
   selectedTurn,
   onViewThinking,
+  onClose,
 }: {
   selectedTurn: ChatTurn | null
   onViewThinking: (source: Source) => void
+  onClose?: () => void
 }) {
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden bg-card">
-      <header className="flex shrink-0 items-center gap-2.5 border-b border-border px-5 py-4">
-        <span className="inline-flex size-8 items-center justify-center rounded-lg bg-accent text-primary">
-          <Library className="size-5" />
-        </span>
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-primary">
-            Evidence
-          </p>
-          <h2 className="font-heading text-base font-bold leading-tight">তথ্যসূত্র</h2>
+      <header className="flex shrink-0 items-center justify-between gap-2.5 border-b border-border px-5 py-4">
+        <div className="flex items-center gap-2.5">
+          <span className="inline-flex size-8 items-center justify-center rounded-lg bg-accent text-primary">
+            <Library className="size-5" />
+          </span>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-primary">
+              Evidence
+            </p>
+            <h2 className="font-heading text-base font-bold leading-tight">তথ্যসূত্র</h2>
+          </div>
         </div>
+        {onClose ? (
+          <button
+            type="button"
+            onClick={onClose}
+            className="inline-flex size-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground"
+            aria-label="বন্ধ করুন"
+          >
+            <X className="size-5" />
+          </button>
+        ) : null}
       </header>
 
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">

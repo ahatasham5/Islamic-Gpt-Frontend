@@ -15,7 +15,7 @@ export function ChatSidebar({
   conversations,
   activeConversationId,
   viewMode,
-  canManageBooks,
+  canViewBooks,
   onNewChat,
   onSelectConversation,
   onOpenBooks,
@@ -27,7 +27,7 @@ export function ChatSidebar({
   conversations: DraftConversation[]
   activeConversationId: string
   viewMode: "chat" | "books" | "mufti-management"
-  canManageBooks: boolean
+  canViewBooks: boolean
   onNewChat: () => void
   onSelectConversation: (id: string) => void
   onOpenBooks: () => void
@@ -114,7 +114,7 @@ export function ChatSidebar({
 
       {/* Bottom */}
       <div className="shrink-0 space-y-2 border-t border-sidebar-border bg-sidebar p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
-        {canManageBooks ? (
+        {canViewBooks ? (
           <button
             type="button"
             onClick={onOpenBooks}
@@ -126,7 +126,7 @@ export function ChatSidebar({
             )}
           >
             <BookMarked className="size-5 text-primary" />
-            কিতাব ম্যানেজ করুন
+            {session.user.role === "super_admin" ? "কিতাব ম্যানেজ করুন" : "কিতাব সমূহ"}
           </button>
         ) : null}
 
