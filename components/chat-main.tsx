@@ -117,7 +117,7 @@ export function ChatMain({
   return (
     <section className="relative flex h-full min-h-0 min-w-0 flex-col overflow-hidden bg-background">
       {/* Top bar */}
-      <header className="shrink-0 flex items-center justify-between gap-3 border-b border-border bg-card/60 px-4 py-3 backdrop-blur md:px-6">
+      <header className="flex h-[72px] shrink-0 items-center justify-between gap-3 border-b border-border bg-card/60 px-4 backdrop-blur md:px-6">
         <div className="flex min-w-0 items-center gap-3">
           <button
             type="button"
@@ -143,9 +143,10 @@ export function ChatMain({
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button
-                type="button"
-                className="flex items-center gap-2 rounded-full border border-border bg-card py-1.5 pl-1.5 pr-3 text-sm font-medium transition hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              <div
+                role="button"
+                tabIndex={0}
+                className="flex items-center gap-2 rounded-full border border-border bg-card py-1.5 pl-1.5 pr-3 text-sm font-medium transition hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer"
               >
                 <span className="inline-flex size-6 items-center justify-center rounded-full bg-primary font-semibold text-primary-foreground text-xs">
                   {session.user.name.slice(0, 1).toUpperCase()}
@@ -154,7 +155,7 @@ export function ChatMain({
                   {session.user.name}
                 </span>
                 <ChevronDown className="size-3.5 text-muted-foreground" />
-              </button>
+              </div>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuGroup>

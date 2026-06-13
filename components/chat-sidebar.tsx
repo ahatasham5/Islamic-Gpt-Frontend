@@ -13,7 +13,7 @@ function getRoleLabel(role: AuthSession["user"]["role"]) {
   if (role === "super_admin") return "Super admin"
   if (role === "mufti") return "Mufti"
 
-  return "User"
+  return ""
 }
 
 export function ChatSidebar({
@@ -50,7 +50,7 @@ export function ChatSidebar({
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden bg-sidebar text-sidebar-foreground">
       {/* Brand */}
-      <div className="flex shrink-0 items-center justify-between gap-3 border-b border-sidebar-border px-4 py-4">
+<div className="flex h-[72px] shrink-0 items-center justify-between gap-3 border-b border-border px-4">
         <div className="flex min-w-0 items-center gap-2.5">
           <BrandMark size={40} />
           <div className="min-w-0 leading-tight">
