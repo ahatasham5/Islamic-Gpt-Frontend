@@ -12,9 +12,10 @@ type AuthContextValue = {
   error: string
   clearError: () => void
   login: (payload: LoginFormValues) => Promise<AuthSession>
-  signup: (payload: SignupFormValues) => Promise<void>
+  signup: (payload: SignupFormValues) => Promise<string>
   verifyOtp: (payload: OtpFormValues) => Promise<unknown>
-  resendOtp: (email: string) => Promise<void>
+  resendOtp: (email: string) => Promise<string>
+  forgotPassword: (email: string) => Promise<string>
   logout: () => void
 }
 

@@ -35,6 +35,15 @@ export type ResendOTP = {
   email: string;
 };
 
+export type ForgotPassword = {
+  email: string;
+};
+
+export type ResetPassword = {
+  token: string;
+  new_password: string;
+};
+
 export type UserResponse = {
   id: number;
   name: string;
@@ -107,9 +116,12 @@ export type ChatRequest = {
   query: string;
   book_id: string | null;
   top_k: number;
+  session_id?: number;
 };
 
 export type ChatResponse = {
+  message_id?: number;
+  session_id?: number;
   answer: string;
   sources: Source[];
   confidence: "high" | "medium" | "low" | "not_found";
@@ -118,4 +130,47 @@ export type ChatResponse = {
   books_searched: string[];
   madhabs?: string[];
   total_chunks_retrieved: number;
+};
+
+export type SessionSummary = {
+  id: number;
+  user_id: number;
+  title: string;
+  created_at: string;
+  is_pinned: boolean;
+};
+
+export type SessionListResponse = {
+  total: number;
+  page: number;
+  size: number;
+  sessions: SessionSummary[];
+};
+
+export type Feedback = {
+  id?: number;
+  is_good: boolean | null;
+  feedback_text: string | null;
+  mufti_name?: string;
+};
+
+export type ChatMessage = ChatResponse & {
+  id?: number;
+  message_id?: number;
+  query: string;
+  created_at: string;
+  feedbacks?: Feedback[];
+  ai_response?: any;
+};
+
+export type SessionDetailResponse = {
+  id: number;
+  user_id: number;
+  title: string;
+  created_at: string;
+  is_pinned: boolean;
+  total_messages: number;
+  page: number;
+  size: number;
+  messages: ChatMessage[];
 };

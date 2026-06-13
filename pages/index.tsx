@@ -26,7 +26,7 @@ export default function RootPage() {
 
   if (isRestoring) {
     return (
-      <main className="grid min-h-screen place-items-center bg-background text-sm text-muted-foreground">
+      <main className="grid min-h-screen place-items-center bg-gradient-to-b from-[#E8F5E6] via-[#D4EED1] to-white text-sm text-gray-700">
         Loading...
       </main>
     )

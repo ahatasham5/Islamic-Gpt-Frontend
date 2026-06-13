@@ -1,9 +1,11 @@
-import { type ChangeEvent, type FormEvent, useMemo, useState } from "react"
+import { type ChangeEvent, type FormEvent, useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/router"
 import { useBooks } from "@/hooks/use-books"
 import { useChat } from "@/hooks/use-chat"
 import { useHealth } from "@/hooks/use-health"
 import { useAuthContext } from "@/lib/auth-context"
+import { useSessions } from "@/hooks/use-sessions"
+import { sessionsApi } from "@/lib/api/sessions"
 import type { DraftConversation, ViewMode } from "@/lib/app-types"
 import { createId } from "@/lib/format"
 import type { BookInfo, Source } from "@/lib/types"
@@ -34,6 +36,7 @@ export function ChatApp() {
   const health = useHealth(Boolean(session))
   const chat = useChat()
   const bookState = useBooks(Boolean(session && canViewBooks))
+  const sessionState = useSessions(Boolean(session))
 
   const [conversations, setConversations] = useState<DraftConversation[]>(initialConversations)
   const [activeConversationId, setActiveConversationId] = useState(initialConversations[0].id)
@@ -52,6 +55,35 @@ export function ChatApp() {
     () => conversations.find((c) => c.id === activeConversationId) ?? conversations[0],
     [activeConversationId, conversations],
   )
+
+  useEffect(() => {
+    const savedChat = sessionStorage.getItem("activeChat")
+    if (savedChat) {
+      setTimeout(() => {
+        handleSelectConversation(savedChat)
+      }, 0)
+    }
+  }, [])
+
+  useEffect(() => {
+    setConversations((current) => {
+      const serverIds = new Set(sessionState.sessions.map(s => String(s.id)))
+      
+      const localConversations = current.filter((c) => {
+        const isLocal = c.id.startsWith("chat") || c.id === "local-new"
+        // Keep local if it has turns or is active, AND is not already in server sessions
+        return isLocal && !serverIds.has(c.id) && (c.id === activeConversationId || c.turns.length > 0)
+      })
+      
+      const serverConversations = sessionState.sessions.map((s) => {
+        const existing = current.find((c) => c.id === String(s.id))
+        return existing
+          ? { ...existing, title: s.title, isPinned: s.is_pinned }
+          : { id: String(s.id), title: s.title, turns: [], createdAt: s.created_at, isPinned: s.is_pinned }
+      })
+      return [...localConversations, ...serverConversations]
+    })
+  }, [sessionState.sessions])
 
   const selectedTurn = useMemo(() => {
     const allTurns = activeConversation?.turns ?? []
@@ -75,6 +107,7 @@ export function ChatApp() {
     }
     setConversations((current) => [conversation, ...current])
     setActiveConversationId(conversation.id)
+    sessionStorage.setItem("activeChat", conversation.id)
     setSelectedTurnId(null)
     setThinkingSource(null)
     setPendingTurn(null)
@@ -82,13 +115,54 @@ export function ChatApp() {
     setMobileNavOpen(false)
   }
 
-  function handleSelectConversation(id: string) {
-    const conversation = conversations.find((c) => c.id === id)
+  async function handleSelectConversation(id: string) {
     setActiveConversationId(id)
-    setSelectedTurnId(conversation?.turns.at(-1)?.id ?? null)
-    setThinkingSource(null)
+    sessionStorage.setItem("activeChat", id)
     setViewMode("chat")
     setMobileNavOpen(false)
+
+    const conversation = conversations.find((c) => c.id === id)
+    if (!id.startsWith("local") && !id.startsWith("chat") && (!conversation || conversation.turns.length === 0)) {
+      try {
+        const data = await sessionsApi.getSession(Number(id))
+        const turns = data.messages.map((m, i) => {
+          // If the backend returns ai_response (as object or JSON string), extract the ChatResponse fields from it
+          let parsedResponse = m
+          if ('ai_response' in m && m.ai_response) {
+            try {
+              parsedResponse = typeof m.ai_response === 'string' ? JSON.parse(m.ai_response) : m.ai_response
+            } catch (e) {
+              console.error("Failed to parse ai_response", e)
+            }
+          }
+
+          return {
+            id: String(m.message_id ?? m.id ?? `turn-${i}`),
+            question: m.query || "",
+            response: {
+              ...m,
+              ...parsedResponse
+            },
+            createdAt: m.created_at,
+            feedbacks: m.feedbacks,
+          }
+        })
+        setConversations(cur => {
+          const exists = cur.some(c => c.id === id)
+          if (exists) {
+            return cur.map(c => c.id === id ? { ...c, turns, title: data.title } : c)
+          } else {
+            return [...cur, { id, title: data.title, turns, createdAt: data.created_at, isPinned: data.is_pinned }]
+          }
+        })
+        setSelectedTurnId(turns.at(-1)?.id ?? null)
+      } catch (err) {
+        console.error(err)
+      }
+    } else {
+      setSelectedTurnId(conversation?.turns.at(-1)?.id ?? null)
+    }
+    setThinkingSource(null)
   }
 
   function handleOpenBooks() {
@@ -117,10 +191,12 @@ export function ChatApp() {
     setQuery("")
 
     try {
+      const isLocal = targetConversationId.startsWith("local") || targetConversationId.startsWith("chat");
       const response = await chat.ask({
         query: trimmedQuery,
         book_id: null,
         top_k: 5,
+        session_id: isLocal ? undefined : Number(targetConversationId),
       })
       const turn = {
         id: createId("turn"),
@@ -129,22 +205,61 @@ export function ChatApp() {
         createdAt: new Date().toISOString(),
       }
 
+      const newConversationId = response.session_id ? String(response.session_id) : targetConversationId
+
       setConversations((current) =>
         current.map((conversation) => {
           if (conversation.id !== targetConversationId) return conversation
           return {
             ...conversation,
+            id: newConversationId,
             title: conversation.turns.length === 0 ? trimmedQuery.slice(0, 44) : conversation.title,
             turns: [...conversation.turns, turn],
           }
         }),
       )
+      
+      if (newConversationId !== targetConversationId) {
+        setActiveConversationId(newConversationId)
+        sessionStorage.setItem("activeChat", newConversationId)
+      }
+      
       setSelectedTurnId(turn.id)
       setStreamingTurnId(turn.id)
+      
+      if (isLocal) {
+        sessionState.loadSessions()
+      }
     } catch {
       setQuery(trimmedQuery)
     } finally {
       setPendingTurn(null)
+    }
+  }
+
+  async function handleFeedback(messageId: string, isGood: boolean) {
+    try {
+      await sessionsApi.submitFeedback(Number(messageId), isGood)
+      // Update local state to reflect the feedback instantly if needed,
+      // or rely on reload. For now, let's just do a optimistic update:
+      setConversations(current => current.map(c => ({
+        ...c,
+        turns: c.turns.map(t => {
+          if (t.id === messageId) {
+            const feedbacks = [...(t.feedbacks || [])]
+            const existingIdx = feedbacks.findIndex(f => f.mufti_name === session?.user.name)
+            if (existingIdx >= 0) {
+              feedbacks[existingIdx].is_good = isGood
+            } else {
+              feedbacks.push({ is_good: isGood, mufti_name: session?.user.name })
+            }
+            return { ...t, feedbacks }
+          }
+          return t
+        })
+      })))
+    } catch (e) {
+      console.error(e)
     }
   }
 
@@ -195,6 +310,23 @@ export function ChatApp() {
       isCreateMuftiOpen={isCreateMuftiOpen}
       onLogout={handleLogout}
       onCloseMobile={onCloseMobile}
+      onPinConversation={async (id, isPinned) => {
+        try {
+          await sessionState.pinSession(Number(id), isPinned)
+        } catch (e) {
+          console.error(e)
+        }
+      }}
+      onDeleteConversation={async (id) => {
+        try {
+          await sessionState.deleteSession(Number(id))
+          if (activeConversationId === id) {
+            handleNewChat()
+          }
+        } catch (e) {
+          console.error(e)
+        }
+      }}
     />
   )
 
@@ -243,8 +375,10 @@ export function ChatApp() {
           chatError={chat.chatError}
           query={query}
           serverState={health.serverState}
+          session={session}
           onQueryChange={setQuery}
           onSubmit={handleAsk}
+          onLogout={handleLogout}
           onSelectTurn={(id) => {
             setSelectedTurnId(id)
             if (window.innerWidth >= 1280) {
@@ -256,6 +390,7 @@ export function ChatApp() {
           onStreamDone={() => setStreamingTurnId(null)}
           onOpenMobileMenu={() => setMobileNavOpen(true)}
           onOpenSources={() => setMobileSourcesOpen(true)}
+          onFeedback={handleFeedback}
         />
       )}
 

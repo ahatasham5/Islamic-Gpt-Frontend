@@ -30,6 +30,11 @@ export async function apiRequest<T>(config: AxiosRequestConfig) {
 export function getApiErrorMessage(error: unknown) {
   if (axios.isAxiosError(error)) {
     const payload = error.response?.data;
+    
+    if (typeof payload === "string") {
+      return payload;
+    }
+
     const detail = payload?.detail;
     const message = payload?.message;
 
@@ -39,7 +44,7 @@ export function getApiErrorMessage(error: unknown) {
 
     if (Array.isArray(detail)) {
       return detail
-        .map((item) => item?.msg)
+        .map((item) => item?.msg || JSON.stringify(item))
         .filter(Boolean)
         .join(" ");
     }

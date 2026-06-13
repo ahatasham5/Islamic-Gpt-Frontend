@@ -1,6 +1,13 @@
 import Head from "next/head"
-import { ChatApp } from "@/components/chat-app"
+import dynamic from "next/dynamic"
 import { withAuth } from "@/lib/with-auth"
+
+import { PageLoader } from "@/components/page-loader"
+
+const ChatApp = dynamic(() => import("@/components/chat-app").then((m) => m.ChatApp), {
+  ssr: false,
+  loading: () => <PageLoader />,
+})
 
 function MuftiPage() {
   return (
@@ -13,4 +20,4 @@ function MuftiPage() {
   )
 }
 
-export default withAuth(MuftiPage, ["mufti", "super_admin"])
+export default withAuth(MuftiPage, ["mufti"])
