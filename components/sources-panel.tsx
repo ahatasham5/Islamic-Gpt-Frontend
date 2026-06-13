@@ -21,7 +21,7 @@ export function SourcesPanel({
 }) {
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden bg-card">
-      <header className="flex shrink-0 items-center justify-between gap-2.5 border-b border-border px-5 py-4">
+      <header className="flex h-[72px] shrink-0 items-center justify-between gap-2.5 border-b border-border px-5">
         <div className="flex items-center gap-2.5">
           <span className="inline-flex size-8 items-center justify-center rounded-lg bg-accent text-primary">
             <Library className="size-5" />
@@ -78,8 +78,8 @@ export function SourcesPanel({
                   key={`${source.file_name}-${index}`}
                   className="rounded-xl border border-border bg-card p-3.5 transition hover:border-primary/40 hover:shadow-sm"
                 >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex min-w-0 items-start gap-2">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex min-w-0 flex-1 items-start gap-2">
                       <span className="mt-0.5 inline-flex size-7 shrink-0 items-center justify-center rounded-md bg-accent text-primary">
                         <ScrollText className="size-4" />
                       </span>
@@ -90,22 +90,12 @@ export function SourcesPanel({
                         {source.book_title}
                       </strong>
                     </div>
-                    <Badge
-                      className={`shrink-0 border-0 text-[0.7rem] ${relevanceStyles[source.relevance_label]}`}
-                    >
-                      {relevanceLabels[source.relevance_label]} · {percent(source.relevance_score)}
-                    </Badge>
+                    {source.madhab ? (
+                      <span className="shrink-0 text-xs font-medium text-muted-foreground whitespace-nowrap mt-0.5">
+                        মাযহাব: {source.madhab}
+                      </span>
+                    ) : null}
                   </div>
-
-                  <p dir="auto" className="mt-2.5 text-sm leading-relaxed text-muted-foreground">
-                    {source.section}
-                  </p>
-
-                  {source.madhab ? (
-                    <p className="mt-1.5 text-xs text-muted-foreground">
-                      মাযহাব: {source.madhab}
-                    </p>
-                  ) : null}
 
                   <button
                     type="button"
