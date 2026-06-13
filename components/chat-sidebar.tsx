@@ -1,13 +1,14 @@
 import { BrandMark } from "@/components/brand-mark"
 import { cn } from "@/lib/utils"
 import type { AuthSession, DraftConversation } from "@/lib/app-types"
-import { BookMarked, LogOut, MessageSquarePlus, MessagesSquare, UserPlus, X, MoreVertical, Pin, Trash2 } from "lucide-react"
+import { BookMarked, LogOut, MessageSquarePlus, MessagesSquare, UserPlus, X, MoreVertical, Pin, Trash2, Users, MessageSquare } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import Link from "next/link"
 
 function getRoleLabel(role: AuthSession["user"]["role"]) {
   if (role === "super_admin") return ""
@@ -26,6 +27,8 @@ export function ChatSidebar({
   onSelectConversation,
   onOpenBooks,
   onOpenMuftiManagement,
+  onOpenAdminFeedbacks,
+  onOpenAdminUsers,
   isCreateMuftiOpen,
   onLogout,
   onCloseMobile,
@@ -38,12 +41,14 @@ export function ChatSidebar({
   session: AuthSession
   conversations: DraftConversation[]
   activeConversationId: string
-  viewMode: "chat" | "books" | "mufti-management"
+  viewMode: string
   canViewBooks: boolean
   onNewChat: () => void
   onSelectConversation: (id: string) => void
   onOpenBooks: () => void
   onOpenMuftiManagement: () => void
+  onOpenAdminFeedbacks?: () => void
+  onOpenAdminUsers?: () => void
   isCreateMuftiOpen: boolean
   onLogout: () => void
   onCloseMobile?: () => void
@@ -177,22 +182,6 @@ export function ChatSidebar({
       {/* Bottom */}
       {canViewBooks || session.user.role === "super_admin" ? (
         <div className="shrink-0 space-y-2 border-t border-sidebar-border bg-sidebar p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
-          {canViewBooks ? (
-            <button
-              type="button"
-              onClick={onOpenBooks}
-              className={cn(
-                "flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium transition",
-                viewMode === "books"
-                  ? "bg-accent text-accent-foreground ring-1 ring-primary/30"
-                  : "text-foreground hover:bg-sidebar-accent",
-              )}
-            >
-              <BookMarked className="size-5 text-primary" />
-              {session.user.role === "super_admin" ? "কিতাব ম্যানেজ করুন" : "কিতাব সমূহ"}
-            </button>
-          ) : null}
-
           {session.user.role === "super_admin" ? (
             <button
               type="button"
@@ -205,8 +194,60 @@ export function ChatSidebar({
               )}
             >
               <UserPlus className="size-5 text-primary" />
-              Create Mufti
+             মুফতি আমন্ত্রণ
             </button>
+          ) : null}
+
+          {session.user.role === "super_admin" ? (
+            <button
+              type="button"
+              onClick={onOpenAdminUsers}
+              className={cn(
+                "flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium transition",
+                viewMode === "admin_users"
+                  ? "bg-accent text-accent-foreground ring-1 ring-primary/30"
+                  : "text-foreground hover:bg-sidebar-accent",
+              )}
+            >
+              <Users className="size-5 text-primary" />
+              ব্যবহারকারী
+            </button>
+          ) : null}
+
+          {session.user.role === "super_admin" ? (
+            <button
+              type="button"
+              onClick={onOpenAdminFeedbacks}
+              className={cn(
+                "flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium transition",
+                viewMode === "admin_feedbacks"
+                  ? "bg-accent text-accent-foreground ring-1 ring-primary/30"
+                  : "text-foreground hover:bg-sidebar-accent",
+              )}
+            >
+              <MessageSquare className="size-5 text-primary" />
+              মতামত সমূহ
+            </button>
+          ) : null}
+
+          {canViewBooks ? (
+            <button
+              type="button"
+              onClick={onOpenBooks}
+              className={cn(
+                "flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium transition",
+                viewMode === "books"
+                  ? "bg-accent text-accent-foreground ring-1 ring-primary/30"
+                  : "text-foreground hover:bg-sidebar-accent",
+              )}
+            >
+              <BookMarked className="size-5 text-primary" />
+              {session.user.role === "super_admin" ? "কিতাব সমূহ" : "কিতাব সমূহ"}
+            </button>
+          ) : null}
+
+          {session.user.role === "super_admin" ? (
+            <div className="h-1.5 w-full bg-green-200/50 rounded-full mt-3 dark:bg-green-900/30" />
           ) : null}
         </div>
       ) : null}

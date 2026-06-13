@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState, type FormEvent } from "react"
 import { BrandMark } from "@/components/brand-mark"
 import { StreamingAnswer } from "@/components/streaming-answer"
+import { FeedbackDialog } from "@/components/feedback-dialog"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { confidenceLabels, type DraftConversation, type ChatTurn, type ServerState } from "@/lib/app-types"
-import { ArrowUp, BookOpen, Check, Copy, FileSearch, Menu, PanelRightClose, PanelRightOpen, ShieldQuestion, Sparkles, User, Settings, LogOut, ChevronDown, ThumbsUp, ThumbsDown } from "lucide-react"
+import { ArrowUp, BookOpen, Check, Copy, FileSearch, Menu, PanelRightClose, PanelRightOpen, ShieldQuestion, Sparkles, User, Settings, LogOut, ChevronDown, ThumbsUp, ThumbsDown, MessageSquare } from "lucide-react"
 
 import type { AuthSession } from "@/lib/types"
 import {
@@ -81,7 +82,7 @@ export function ChatMain({
   onOpenSources?: () => void
   session: AuthSession
   onLogout: () => void
-  onFeedback?: (messageId: string, isGood: boolean) => void
+  onFeedback?: (messageId: string, isGood: boolean | null, text?: string) => Promise<void> | void
   onOpenSettings: (tab: "profile" | "security") => void
   hasMoreMessages?: boolean
   isLoadingMoreMessages?: boolean
@@ -242,7 +243,7 @@ export function ChatMain({
                 isStreaming={streamingTurnId === turn.id}
                 onSelect={() => onSelectTurn(turn.id)}
                 onStreamDone={onStreamDone}
-                isMufti={session?.user?.role === "mufti" || session?.user?.role === "super_admin"}
+                isMufti={session?.user?.role === "mufti"}
                 onFeedback={onFeedback}
               />
             ))}
@@ -356,9 +357,13 @@ function TurnBlock({
   onSelect: () => void
   onStreamDone: () => void
   isMufti?: boolean
-  onFeedback?: (messageId: string, isGood: boolean) => void
+  onFeedback?: (messageId: string, isGood: boolean | null, text?: string) => Promise<void> | void
 }) {
   const [copied, setCopied] = useState(false)
+  const [feedbackState, setFeedbackState] = useState<{ open: boolean; isGood: boolean | null }>({
+    open: false,
+    isGood: null,
+  })
 
   function handleCopyAnswer() {
     navigator.clipboard.writeText(turn.response.answer)
@@ -438,31 +443,34 @@ function TurnBlock({
               <div className="flex items-center gap-1 border-l border-border pl-3 ml-1">
                 <button
                   type="button"
-                  onClick={() => onFeedback(turn.id, true)}
+                  onClick={() => setFeedbackState({ open: true, isGood: userFeedback ? userFeedback.is_good : null })}
                   className={cn(
-                    "inline-flex size-8 items-center justify-center rounded-lg border border-border bg-card transition hover:bg-accent/40",
-                    isThumbsUp && "text-green-600 border-green-600/40 bg-green-50"
+                    "inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold transition hover:bg-accent/40",
+                    isThumbsUp ? "border-green-600/40 bg-green-50 text-green-700" :
+                    isThumbsDown ? "border-red-600/40 bg-red-50 text-red-700" :
+                    "border-border bg-card text-muted-foreground"
                   )}
-                  title="সঠিক উত্তর"
+                  title="মতামত দিন"
                 >
-                  <ThumbsUp className="size-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => onFeedback(turn.id, false)}
-                  className={cn(
-                    "inline-flex size-8 items-center justify-center rounded-lg border border-border bg-card transition hover:bg-accent/40",
-                    isThumbsDown && "text-red-600 border-red-600/40 bg-red-50"
-                  )}
-                  title="ভুল উত্তর"
-                >
-                  <ThumbsDown className="size-4" />
+                  <MessageSquare className="size-3.5" />
+                  মতামত দিন
                 </button>
               </div>
             )}
           </div>
         </div>
       </div>
+
+      {isMufti && onFeedback && !turn.id.startsWith("turn") && (
+        <FeedbackDialog
+          open={feedbackState.open}
+          onOpenChange={(open) => setFeedbackState((s) => ({ ...s, open }))}
+          isGoodInitial={feedbackState.isGood}
+          onSubmit={async (isGood, text) => {
+            await onFeedback(turn.id, isGood, text)
+          }}
+        />
+      )}
     </article>
   )
 }

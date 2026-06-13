@@ -33,7 +33,7 @@ export const sessionsApi = {
     });
   },
 
-  submitFeedback(messageId: number, isGood: boolean, feedbackText?: string) {
+  submitFeedback(messageId: number, isGood: boolean | null, feedbackText?: string) {
     return apiRequest<string>({
       method: "POST",
       url: `/messages/${messageId}/feedback`,

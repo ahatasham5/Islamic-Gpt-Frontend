@@ -4,8 +4,8 @@ export default function Document() {
   return (
     <Html lang="bn">
       <Head>
-        <link rel="icon" href="/AsSunnahFoundationLogo.png" />
-        <link rel="apple-touch-icon" href="/AsSunnahFoundationLogo.png" />
+        <link rel="icon" href="/iqa-logo.png" />
+        <link rel="apple-touch-icon" href="/iqa-logo.png" />
         <meta name="theme-color" content="#0f766e" />
       </Head>
       <body className="antialiased" suppressHydrationWarning>

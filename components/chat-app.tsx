@@ -13,6 +13,8 @@ import { ChatSidebar } from "@/components/chat-sidebar"
 import { ChatMain } from "@/components/chat-main"
 import { SourcesPanel } from "@/components/sources-panel"
 import { BookManager } from "@/components/book-manager"
+import { AdminFeedbacks } from "@/components/admin-feedbacks"
+import { AdminUsers } from "@/components/admin-users"
 import { SettingsDialog } from "@/components/settings-dialog"
 import { ConfirmDialog } from "@/components/confirm-dialog"
 import { CreateMuftiDialog } from "@/components/create-mufti-panel"
@@ -48,10 +50,10 @@ export function ChatApp() {
     if (typeof window !== "undefined") {
       const urlParams = new URLSearchParams(window.location.search)
       const view = urlParams.get("view") as ViewMode
-      if (view === "books" || view === "chat") return view
+      if (view === "books" || view === "chat" || view === "admin_feedbacks" || view === "admin_users") return view
       
       const saved = sessionStorage.getItem("viewMode") as ViewMode
-      if (saved === "books" || saved === "chat") return saved
+      if (saved === "books" || saved === "chat" || saved === "admin_feedbacks" || saved === "admin_users") return saved
     }
     return "chat"
   })
@@ -134,6 +136,7 @@ export function ChatApp() {
   }, [activeConversation, selectedTurnId])
 
   function handleLogout() {
+    sessionStorage.removeItem("activeChat")
     logout()
     router.replace("/login")
   }
@@ -214,11 +217,6 @@ export function ChatApp() {
   function handleOpenBooks() {
     setViewMode("books")
     setMobileNavOpen(false)
-  }
-
-  function handleOpenMuftiManagement() {
-    setMobileNavOpen(false)
-    setIsCreateMuftiOpen(true)
   }
 
   async function handleLoadMoreMessages() {
@@ -324,9 +322,9 @@ export function ChatApp() {
     }
   }
 
-  async function handleFeedback(messageId: string, isGood: boolean) {
+  async function handleFeedback(messageId: string, isGood: boolean | null, text?: string) {
     try {
-      await sessionsApi.submitFeedback(Number(messageId), isGood)
+      await sessionsApi.submitFeedback(Number(messageId), isGood, text)
       // Update local state to reflect the feedback instantly if needed,
       // or rely on reload. For now, let's just do a optimistic update:
       setConversations(current => current.map(c => ({
@@ -337,8 +335,9 @@ export function ChatApp() {
             const existingIdx = feedbacks.findIndex(f => f.mufti_name === session?.user.name)
             if (existingIdx >= 0) {
               feedbacks[existingIdx].is_good = isGood
+              feedbacks[existingIdx].feedback_text = text || null
             } else {
-              feedbacks.push({ is_good: isGood, feedback_text: null, mufti_name: session?.user.name })
+              feedbacks.push({ is_good: isGood, feedback_text: text || null, mufti_name: session?.user.name })
             }
             return { ...t, feedbacks }
           }
@@ -419,7 +418,15 @@ export function ChatApp() {
       onNewChat={handleNewChat}
       onSelectConversation={handleSelectConversation}
       onOpenBooks={handleOpenBooks}
-      onOpenMuftiManagement={handleOpenMuftiManagement}
+      onOpenMuftiManagement={() => setIsCreateMuftiOpen(true)}
+      onOpenAdminFeedbacks={() => {
+        setViewMode("admin_feedbacks")
+        onCloseMobile?.()
+      }}
+      onOpenAdminUsers={() => {
+        setViewMode("admin_users")
+        onCloseMobile?.()
+      }}
       isCreateMuftiOpen={isCreateMuftiOpen}
       onLogout={handleLogout}
       onCloseMobile={onCloseMobile}
@@ -477,6 +484,26 @@ export function ChatApp() {
             setSettingsTab(tab)
             setIsSettingsOpen(true)
           }}
+        />
+      ) : viewMode === "admin_feedbacks" && session.user.role === "super_admin" ? (
+        <AdminFeedbacks
+          session={session}
+          onOpenMobileMenu={() => setMobileNavOpen(true)}
+          onOpenSettings={(tab) => {
+            setSettingsTab(tab)
+            setIsSettingsOpen(true)
+          }}
+          onLogout={handleLogout}
+        />
+      ) : viewMode === "admin_users" && session.user.role === "super_admin" ? (
+        <AdminUsers
+          session={session}
+          onOpenMobileMenu={() => setMobileNavOpen(true)}
+          onOpenSettings={(tab) => {
+            setSettingsTab(tab)
+            setIsSettingsOpen(true)
+          }}
+          onLogout={handleLogout}
         />
       ) : (
         <ChatMain
