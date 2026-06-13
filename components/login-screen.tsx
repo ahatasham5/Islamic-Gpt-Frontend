@@ -1,9 +1,9 @@
-import { useState, type FormEvent } from "react"
+import { useState, useEffect, type FormEvent } from "react"
 import { BrandMark } from "@/components/brand-mark"
 import { Button } from "@/components/ui/button"
 import type { AuthSession } from "@/lib/types"
-import type { LoginFormValues, OtpFormValues, SignupFormValues } from "@/lib/validation/auth"
-import { getValidationMessage, loginSchema, otpSchema, resendOtpSchema, signupSchema } from "@/lib/validation/auth"
+import type { LoginFormValues, OtpFormValues, SignupFormValues, ForgotPasswordFormValues } from "@/lib/validation/auth"
+import { getValidationMessage, loginSchema, otpSchema, resendOtpSchema, signupSchema, forgotPasswordSchema } from "@/lib/validation/auth"
 import { useLanguage } from "@/lib/language-context"
 import {
   ArrowLeft,
@@ -54,6 +54,10 @@ const translations = {
     verifyAccount: "অ্যাকাউন্ট যাচাই করুন",
     resendOtp: "পুনরায় ওটিপি পাঠান",
     backToSignup: "সাইন আপ এ ফিরে যান",
+    forgotPassword: "পাসওয়ার্ড ভুলে গেছেন?",
+    sendResetLink: "রিসেট লিংক পাঠান",
+    forgotPasswordDesc: "আপনার ইমেইল দিন, আমরা পাসওয়ার্ড রিসেটের লিংক পাঠাব।",
+    backToSignin: "সাইন ইন এ ফিরে যান",
     copyright: "© {year} As-Sunnah Foundation. All rights reserved.",
   },
   en: {
@@ -90,11 +94,15 @@ const translations = {
     verifyAccount: "Verify Account",
     resendOtp: "Resend OTP",
     backToSignup: "Back to Sign Up",
+    forgotPassword: "Forgot Password?",
+    sendResetLink: "Send Reset Link",
+    forgotPasswordDesc: "Enter your email and we'll send a password reset link.",
+    backToSignin: "Back to Sign In",
     copyright: "© {year} As-Sunnah Foundation. All rights reserved.",
   },
 }
 
-type AuthMode = "signin" | "signup" | "otp"
+type AuthMode = "signin" | "signup" | "otp" | "forgot-password"
 
 type LoginScreenProps = {
   apiError: string
@@ -103,9 +111,10 @@ type LoginScreenProps = {
   isResending: boolean
   clearError: () => void
   onLogin: (payload: LoginFormValues) => Promise<AuthSession>
-  onSignup: (payload: SignupFormValues) => Promise<void>
+  onSignup: (payload: SignupFormValues) => Promise<string>
   onVerifyOtp: (payload: OtpFormValues) => Promise<unknown>
-  onResendOtp: (email: string) => Promise<void>
+  onResendOtp: (email: string) => Promise<string>
+  onForgotPassword: (email: string) => Promise<string>
 }
 
 export function LoginScreen({
@@ -118,10 +127,11 @@ export function LoginScreen({
   onSignup,
   onVerifyOtp,
   onResendOtp,
+  onForgotPassword,
 }: LoginScreenProps) {
   const { language } = useLanguage()
   const t = translations[language]
-  
+
   const highlights = [
     {
       icon: MessageCircleQuestion,
@@ -139,13 +149,22 @@ export function LoginScreen({
       desc: t.highlight3Desc,
     },
   ]
-  
+
   const [mode, setMode] = useState<AuthMode>("signin")
   const [signinForm, setSigninForm] = useState<LoginFormValues>({ email: "", password: "" })
   const [signupForm, setSignupForm] = useState<SignupFormValues>({ name: "", email: "", password: "" })
   const [otpForm, setOtpForm] = useState<OtpFormValues>({ email: "", otp: "" })
+  const [forgotPasswordForm, setForgotPasswordForm] = useState<ForgotPasswordFormValues>({ email: "" })
   const [formError, setFormError] = useState("")
   const [message, setMessage] = useState("")
+  const [countdown, setCountdown] = useState(0)
+
+  useEffect(() => {
+    if (countdown > 0) {
+      const timer = setTimeout(() => setCountdown(countdown - 1), 1000)
+      return () => clearTimeout(timer)
+    }
+  }, [countdown])
 
   const visibleError = formError || apiError
   const isBusy = isSubmitting || isVerifying || isResending
@@ -189,10 +208,11 @@ export function LoginScreen({
     }
 
     try {
-      await onSignup(result.data)
+      const backendMsg = await onSignup(result.data)
       setOtpForm({ email: result.data.email, otp: "" })
       setMode("otp")
-      setMessage("OTP sent to your email. Enter the 6-digit code to verify your account.")
+      setMessage(typeof backendMsg === "string" ? backendMsg : "")
+      setCountdown(90)
     } catch {
       // The auth hook exposes backend errors through apiError.
     }
@@ -209,11 +229,11 @@ export function LoginScreen({
     }
 
     try {
-      await onVerifyOtp(result.data)
+      const verifyRes = await onVerifyOtp(result.data)
       setSigninForm((current) => ({ ...current, email: result.data.email, password: "" }))
       setOtpForm({ email: result.data.email, otp: "" })
       setMode("signin")
-      setMessage("Account verified. Please sign in with your email and password.")
+      setMessage((verifyRes as any)?.message || "")
     } catch {
       // The auth hook exposes backend errors through apiError.
     }
@@ -229,8 +249,29 @@ export function LoginScreen({
     }
 
     try {
-      await onResendOtp(result.data.email)
-      setMessage("A new OTP has been sent to your email.")
+      const backendMsg = await onResendOtp(result.data.email)
+      setMessage(typeof backendMsg === "string" ? backendMsg : "")
+      setCountdown(90)
+    } catch {
+      // The auth hook exposes backend errors through apiError.
+    }
+  }
+
+  async function handleForgotPassword(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    resetFeedback()
+
+    const result = forgotPasswordSchema.safeParse(forgotPasswordForm)
+    if (!result.success) {
+      setFormError(getValidationMessage(result.error))
+      return
+    }
+
+    try {
+      const backendMsg = await onForgotPassword(result.data.email)
+      const msgText = typeof backendMsg === "string" ? backendMsg : (backendMsg as any)?.detail || "Password reset link sent to your email."
+      setMessage(msgText)
+      setForgotPasswordForm({ email: "" })
     } catch {
       // The auth hook exposes backend errors through apiError.
     }
@@ -240,71 +281,72 @@ export function LoginScreen({
     <main className="relative min-h-dvh overflow-hidden bg-gradient-to-b from-[#E8F5E6] via-[#D4EED1] to-white flex items-center justify-center px-6 py-8">
 
       {/* Centered login form */}
-      <div className="w-full max-w-xl">
+      <div className="w-full max-w-xl animate-in fade-in zoom-in-95 duration-500">
         <div className="mb-8 flex flex-col items-center text-center">
           <BrandMark size={64} />
           <p className="mt-3 text-sm text-gray-700">{t.foundation}</p>
           <h1 className="font-heading text-3xl font-bold text-gray-900">{t.appName}</h1>
         </div>
 
-        <div className="rounded-2xl border-2 border-white/40 bg-white/25 p-20 shadow-2xl backdrop-blur-xl">
-            {mode === "otp" ? (
+        <div className="rounded-2xl border-2 border-white/60 bg-white/30 p-20 shadow-xl backdrop-blur-2xl hover:shadow-2xl transition-shadow duration-300">
+          {mode === "otp" || mode === "forgot-password" ? (
+            <button
+              type="button"
+              onClick={() => switchMode(mode === "otp" ? "signup" : "signin")}
+              className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-gray-700 transition hover:text-gray-900 cursor-pointer"
+            >
+              <ArrowLeft className="size-4" />
+              {mode === "otp" ? t.backToSignup : t.backToSignin}
+            </button>
+          ) : (
+            <div className="mb-5 grid grid-cols-2 rounded-xl border border-white/30 bg-white/15 p-1 backdrop-blur-sm">
+              <button
+                type="button"
+                onClick={() => switchMode("signin")}
+                className={`rounded-lg px-3 py-2 text-sm font-semibold cursor-pointer ${mode === "signin" ? "bg-white/30 text-gray-900 shadow-sm backdrop-blur-sm border-2 border-[#64C859]" : "text-gray-700 hover:text-gray-900"
+                  }`}
+              >
+                {t.signIn}
+              </button>
               <button
                 type="button"
                 onClick={() => switchMode("signup")}
-                className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-gray-700 transition hover:text-gray-900 cursor-pointer"
+                className={`rounded-lg px-3 py-2 text-sm font-semibold cursor-pointer ${mode === "signup" ? "bg-white/30 text-gray-900 shadow-sm backdrop-blur-sm border-2 border-[#64C859]" : "text-gray-700 hover:text-gray-900"
+                  }`}
               >
-                <ArrowLeft className="size-4" />
-                {t.backToSignup}
+                {t.signUp}
               </button>
-            ) : (
-              <div className="mb-5 grid grid-cols-2 rounded-xl border border-white/30 bg-white/15 p-1 backdrop-blur-sm">
-                <button
-                  type="button"
-                  onClick={() => switchMode("signin")}
-                  className={`rounded-lg px-3 py-2 text-sm font-semibold transition cursor-pointer ${
-                    mode === "signin" ? "bg-white/30 text-gray-900 shadow-sm backdrop-blur-sm border-2 border-[#64C859]" : "text-gray-700 hover:text-gray-900"
-                  }`}
-                >
-                  {t.signIn}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => switchMode("signup")}
-                  className={`rounded-lg px-3 py-2 text-sm font-semibold transition cursor-pointer ${
-                    mode === "signup" ? "bg-white/30 text-gray-900 shadow-sm backdrop-blur-sm border-2 border-[#64C859]" : "text-gray-700 hover:text-gray-900"
-                  }`}
-                >
-                  {t.signUp}
-                </button>
-              </div>
-            )}
+            </div>
+          )}
 
-            <h2 className="font-heading text-xl font-bold text-gray-800 text-center">
-              {mode === "signin" ? t.greeting : mode === "signup" ? t.createAccount : t.verifyOtp}
-            </h2>
-            <p className="mt-1 text-sm text-gray-700 text-center">
-              {mode === "signin"
-                ? t.useEmailPassword
-                : mode === "signup"
-                  ? t.enterDetails
+          <h2 className="font-heading text-xl font-bold text-gray-800 text-center">
+            {mode === "signin" ? t.greeting : mode === "signup" ? t.createAccount : mode === "forgot-password" ? t.forgotPassword : t.verifyOtp}
+          </h2>
+          <p className="mt-1 text-sm text-gray-700 text-center">
+            {mode === "signin"
+              ? t.useEmailPassword
+              : mode === "signup"
+                ? t.enterDetails
+                : mode === "forgot-password"
+                  ? t.forgotPasswordDesc
                   : `${t.otpSent} ${otpForm.email || language === "bn" ? "আপনার ইমেইলে" : "your email"}${t.otpSentEnd ? ` ${t.otpSentEnd}` : "."}`}
+          </p>
+
+          {visibleError ? (
+            <p className="mt-4 rounded-xl border border-destructive/25 bg-destructive/10 px-3.5 py-2.5 text-sm text-destructive">
+              {visibleError}
             </p>
+          ) : null}
 
-            {visibleError ? (
-              <p className="mt-4 rounded-xl border border-destructive/25 bg-destructive/10 px-3.5 py-2.5 text-sm text-destructive">
-                {visibleError}
-              </p>
-            ) : null}
+          {message ? (
+            <p className="mt-4 rounded-xl border border-primary/20 bg-accent px-3.5 py-2.5 text-sm text-foreground">
+              {message}
+            </p>
+          ) : null}
 
-            {message ? (
-              <p className="mt-4 rounded-xl border border-primary/20 bg-accent px-3.5 py-2.5 text-sm text-foreground">
-                {message}
-              </p>
-            ) : null}
-
+          <div className="relative overflow-hidden px-4">
             {mode === "signin" ? (
-              <form className="mt-6 space-y-4" onSubmit={handleSignin}>
+              <form key="signin" className="mt-6 space-y-4 animate-in fade-in duration-700 [animation-timing-function:cubic-bezier(0.4,0,0.2,1)]" style={{ animation: 'ripple 0.7s ease-out' }} onSubmit={handleSignin}>
                 <TextField
                   id="signin-email"
                   label={t.email}
@@ -328,6 +370,16 @@ export function LoginScreen({
                   autoComplete="current-password"
                 />
 
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => switchMode("forgot-password")}
+                    className="text-sm font-medium text-[#64C859] hover:underline"
+                  >
+                    {t.forgotPassword}
+                  </button>
+                </div>
+
                 <Button type="submit" size="lg" disabled={isSubmitting} className="h-11 w-full rounded-xl text-base bg-[#64C859] hover:bg-[#64C859]/90 cursor-pointer">
                   <span className="inline-flex size-4 items-center justify-center">
                     {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : null}
@@ -338,7 +390,7 @@ export function LoginScreen({
             ) : null}
 
             {mode === "signup" ? (
-              <form className="mt-6 space-y-4" onSubmit={handleSignup}>
+              <form key="signup" className="mt-6 space-y-4 animate-in fade-in duration-700" style={{ animation: 'ripple 0.7s ease-out' }} onSubmit={handleSignup}>
                 <TextField
                   id="signup-name"
                   label={t.name}
@@ -383,7 +435,7 @@ export function LoginScreen({
             ) : null}
 
             {mode === "otp" ? (
-              <form className="mt-6 space-y-4" onSubmit={handleVerifyOtp}>
+              <form key="otp" className="mt-6 space-y-4 animate-in fade-in duration-700" style={{ animation: 'ripple 0.7s ease-out' }} onSubmit={handleVerifyOtp}>
                 <TextField
                   id="otp-email"
                   label={t.email}
@@ -418,19 +470,43 @@ export function LoginScreen({
                 <Button
                   type="button"
                   variant="ghost"
-                  disabled={isResending}
+                  disabled={isResending || countdown > 0}
                   onClick={handleResendOtp}
                   className="h-10 w-full rounded-xl cursor-pointer"
                 >
                   <span className="inline-flex size-4 items-center justify-center">
                     {isResending ? <Loader2 className="size-4 animate-spin" /> : null}
                   </span>
-                  {t.resendOtp}
+                  {countdown > 0 ? `${t.resendOtp} (${countdown}s)` : t.resendOtp}
+                </Button>
+              </form>
+            ) : null}
+
+            {mode === "forgot-password" ? (
+              <form key="forgot-password" className="mt-6 space-y-4 animate-in fade-in duration-700" style={{ animation: 'ripple 0.7s ease-out' }} onSubmit={handleForgotPassword}>
+                <TextField
+                  id="forgot-email"
+                  label={t.email}
+                  type="email"
+                  icon={Mail}
+                  placeholder={t.emailPlaceholder}
+                  value={forgotPasswordForm.email}
+                  onChange={(value) => setForgotPasswordForm({ email: value })}
+                  disabled={isBusy}
+                  autoComplete="email"
+                />
+
+                <Button type="submit" size="lg" disabled={isSubmitting} className="h-11 w-full rounded-xl text-base bg-[#64C859] hover:bg-[#64C859]/90 cursor-pointer">
+                  <span className="inline-flex size-4 items-center justify-center">
+                    {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : null}
+                  </span>
+                  {t.sendResetLink}
                 </Button>
               </form>
             ) : null}
           </div>
         </div>
+      </div>
 
       {/* Copyright footer - bottom center */}
       <div className="absolute bottom-0 left-0 right-0 pb-4 text-center">
@@ -488,7 +564,7 @@ function TextField({
           inputMode={inputMode}
           maxLength={maxLength}
           placeholder={placeholder}
-          className="h-11 w-full rounded-xl border-2 border-white/40 bg-white/20 px-10 text-sm text-gray-900 placeholder:text-gray-600 outline-none transition backdrop-blur-sm disabled:cursor-not-allowed disabled:opacity-60 focus:border-white/60 focus:bg-white/30 focus:ring-2 focus:ring-white/30"
+          className="h-11 w-full rounded-xl border-2 border-[#64C859]/30 bg-white/20 pl-11 pr-10 text-sm text-gray-900 placeholder:text-gray-600 outline-none transition-all duration-300 backdrop-blur-sm disabled:cursor-not-allowed disabled:opacity-60 focus:border-[#64C859] focus:bg-white/30 focus:ring-2 focus:ring-[#64C859]/30 overflow-hidden text-ellipsis"
         />
         {isPassword ? (
           <button

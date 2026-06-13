@@ -82,7 +82,7 @@ export function renderInlineText(text: string, keyPrefix = "inline"): ReactNode[
 }
 
 export function renderFormattedAnswer(text: string) {
-  const lines = text.split(/\r?\n/)
+  const lines = (text || "").split(/\r?\n/)
 
   return lines.map((line, index) => {
     const key = `line-${index}`

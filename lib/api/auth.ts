@@ -5,7 +5,7 @@ type EmptyResponse = Record<string, never>
 
 export const authApi = {
   signup(payload: UserCreate) {
-    return apiRequest<EmptyResponse>({
+    return apiRequest<string>({
       method: "POST",
       url: "/auth/signup",
       data: payload,
@@ -13,7 +13,7 @@ export const authApi = {
   },
 
   resendOtp(payload: ResendOTP) {
-    return apiRequest<EmptyResponse>({
+    return apiRequest<string>({
       method: "POST",
       url: "/auth/resend-otp",
       data: payload,
@@ -45,7 +45,7 @@ export const authApi = {
   },
 
   acceptInvite(payload: AcceptInvite) {
-    return apiRequest<UserResponse>({
+    return apiRequest<string>({
       method: "POST",
       url: "/auth/accept-invite",
       data: payload,

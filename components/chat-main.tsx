@@ -4,7 +4,17 @@ import { StreamingAnswer } from "@/components/streaming-answer"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { confidenceLabels, type DraftConversation, type ChatTurn, type ServerState } from "@/lib/app-types"
-import { ArrowUp, BookOpen, Check, Copy, FileSearch, Menu, PanelRightClose, PanelRightOpen, ShieldQuestion, Sparkles } from "lucide-react"
+import { ArrowUp, BookOpen, Check, Copy, FileSearch, Menu, PanelRightClose, PanelRightOpen, ShieldQuestion, Sparkles, User, Settings, LogOut, ChevronDown, ThumbsUp, ThumbsDown } from "lucide-react"
+import type { AuthSession } from "@/lib/types"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuGroup,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 const confidenceStyles: Record<string, string> = {
   high: "bg-accent text-accent-foreground",
@@ -47,6 +57,9 @@ export function ChatMain({
   onOpenMobileMenu,
   onToggleSources,
   isSourcesOpen,
+  session,
+  onLogout,
+  onFeedback,
 }: {
   conversation: DraftConversation | undefined
   selectedTurnId: string | null
@@ -63,6 +76,9 @@ export function ChatMain({
   onOpenMobileMenu: () => void
   onToggleSources: () => void
   isSourcesOpen: boolean
+  session: AuthSession
+  onLogout: () => void
+  onFeedback?: (messageId: string, isGood: boolean) => void
 }) {
   const scrollRef = useRef<HTMLDivElement | null>(null)
   const textareaRef = useRef<HTMLTextAreaElement | null>(null)
@@ -119,11 +135,54 @@ export function ChatMain({
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <span className="hidden items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground sm:inline-flex">
             <span className={cn("size-2 rounded-full", serverDot[serverState])} />
             {serverLabel[serverState]}
           </span>
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                className="flex items-center gap-2 rounded-full border border-border bg-card py-1.5 pl-1.5 pr-3 text-sm font-medium transition hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <span className="inline-flex size-6 items-center justify-center rounded-full bg-primary font-semibold text-primary-foreground text-xs">
+                  {session.user.name.slice(0, 1).toUpperCase()}
+                </span>
+                <span className="hidden md:inline-block max-w-[100px] truncate text-foreground">
+                  {session.user.name}
+                </span>
+                <ChevronDown className="size-3.5 text-muted-foreground" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuGroup>
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium leading-none">{session.user.name}</p>
+                    <p className="text-xs leading-none text-muted-foreground">
+                      {session.user.email}
+                    </p>
+                  </div>
+                </DropdownMenuLabel>
+              </DropdownMenuGroup>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="cursor-pointer">
+                <User className="mr-2 size-4" />
+                <span>Profile</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer">
+                <Settings className="mr-2 size-4" />
+                <span>Settings</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive" onClick={onLogout}>
+                <LogOut className="mr-2 size-4" />
+                <span>Logout</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </header>
 
@@ -166,6 +225,8 @@ export function ChatMain({
                 isStreaming={streamingTurnId === turn.id}
                 onSelect={() => onSelectTurn(turn.id)}
                 onStreamDone={onStreamDone}
+                isMufti={session?.user?.role === "mufti" || session?.user?.role === "super_admin"}
+                onFeedback={onFeedback}
               />
             ))}
 
@@ -189,7 +250,7 @@ export function ChatMain({
       </div>
 
       {/* Composer */}
-      <div className="sticky bottom-0 z-20 shrink-0 border-t border-border bg-gradient-to-b from-background to-card/30 px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-4 md:px-6">
+      <div className="sticky bottom-0 z-20 shrink-0 bg-gradient-to-b from-background to-card/30 px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-4 md:px-6">
         <form onSubmit={onSubmit} className="mx-auto max-w-3xl">
           {chatError ? (
             <p className="mb-3 rounded-xl border border-destructive/30 bg-destructive/10 px-3.5 py-2.5 text-sm text-destructive">
@@ -217,7 +278,7 @@ export function ChatMain({
             </button>
           </div>
           <p className="mt-2 px-1 text-center text-xs text-muted-foreground">
-            Fatwa Chat Bot ভুল করতে পারে — গুরুত্বপূর্ণ বিষয়ে আলেমের পরামর্শ নিন।
+            Fatwa GPT ভুল করতে পারে — গুরুত্বপূর্ণ বিষয়ে আলেমের পরামর্শ নিন।
           </p>
         </form>
       </div>
@@ -230,7 +291,7 @@ function UserQuestionBubble({ question }: { question: string }) {
     <div className="flex justify-end">
       <div
         dir="auto"
-        className="max-w-[85%] sm:max-w-[75%] rounded-3xl rounded-tr-sm bg-secondary px-5 py-3 text-base leading-relaxed text-foreground"
+        className="max-w-[85%] sm:max-w-[75%] rounded-3xl rounded-tr-sm bg-secondary px-5 py-3 text-base leading-relaxed text-foreground text-justify"
       >
         {question}
       </div>
@@ -244,12 +305,16 @@ function TurnBlock({
   isStreaming,
   onSelect,
   onStreamDone,
+  isMufti,
+  onFeedback,
 }: {
   turn: ChatTurn
   isSelected: boolean
   isStreaming: boolean
   onSelect: () => void
   onStreamDone: () => void
+  isMufti?: boolean
+  onFeedback?: (messageId: string, isGood: boolean) => void
 }) {
   const [copied, setCopied] = useState(false)
 
@@ -258,6 +323,10 @@ function TurnBlock({
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
+
+  const userFeedback = turn.feedbacks?.find((f) => f.mufti_name) // find my feedback, or just check general feedback logic
+  const isThumbsUp = userFeedback?.is_good === true;
+  const isThumbsDown = userFeedback?.is_good === false;
 
   return (
     <article className="animate-fade-rise space-y-6">
@@ -321,8 +390,34 @@ function TurnBlock({
               )}
             >
               <FileSearch className="size-4" />
-              তথ্যসূত্র দেখুন ({turn.response.sources.length})
+              তথ্যসূত্র দেখুন ({turn.response.sources?.length ?? 0})
             </button>
+            {isMufti && onFeedback && !turn.id.startsWith("turn") && (
+              <div className="flex items-center gap-1 border-l border-border pl-3 ml-1">
+                <button
+                  type="button"
+                  onClick={() => onFeedback(turn.id, true)}
+                  className={cn(
+                    "inline-flex size-8 items-center justify-center rounded-lg border border-border bg-card transition hover:bg-accent/40",
+                    isThumbsUp && "text-green-600 border-green-600/40 bg-green-50"
+                  )}
+                  title="সঠিক উত্তর"
+                >
+                  <ThumbsUp className="size-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onFeedback(turn.id, false)}
+                  className={cn(
+                    "inline-flex size-8 items-center justify-center rounded-lg border border-border bg-card transition hover:bg-accent/40",
+                    isThumbsDown && "text-red-600 border-red-600/40 bg-red-50"
+                  )}
+                  title="ভুল উত্তর"
+                >
+                  <ThumbsDown className="size-4" />
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
