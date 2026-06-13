@@ -24,4 +24,28 @@ export const usersApi = {
       data: payload,
     })
   },
+
+  updateProfile(name: string) {
+    return apiRequest<UserResponse>({
+      method: "PATCH",
+      url: "/users/me",
+      data: { name },
+    })
+  },
+
+  requestPasswordChange(oldPassword: string) {
+    return apiRequest<{ detail: string }>({
+      method: "POST",
+      url: "/users/change-password/request",
+      data: { old_password: oldPassword },
+    })
+  },
+
+  verifyPasswordChange(otp: string, newPassword: string) {
+    return apiRequest<{ detail: string }>({
+      method: "POST",
+      url: "/users/change-password/verify",
+      data: { otp, new_password: newPassword },
+    })
+  },
 }

@@ -168,6 +168,20 @@ export function useAuth() {
     }
   }, [])
 
+  const fetchSession = useCallback(async () => {
+    try {
+      const freshUser = await usersApi.getMe()
+      setSession((prev) => {
+        if (!prev) return prev
+        const nextSession = { ...prev, user: freshUser }
+        saveSession(nextSession)
+        return nextSession
+      })
+    } catch (err) {
+      // Ignored
+    }
+  }, [])
+
   return {
     session,
     isRestoring,
@@ -182,5 +196,6 @@ export function useAuth() {
     resendOtp,
     logout,
     forgotPassword,
+    fetchSession,
   }
 }

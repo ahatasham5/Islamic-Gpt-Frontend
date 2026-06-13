@@ -164,7 +164,7 @@ export function ChatApp() {
 
           return {
             id: String(m.message_id ?? m.id ?? `turn-${i}`),
-            question: m.query || "",
+            question: m.user_query || m.query || "",
             response: {
               ...m,
               ...parsedResponse
@@ -277,7 +277,7 @@ export function ChatApp() {
             if (existingIdx >= 0) {
               feedbacks[existingIdx].is_good = isGood
             } else {
-              feedbacks.push({ is_good: isGood, mufti_name: session?.user.name })
+              feedbacks.push({ is_good: isGood, feedback_text: null, mufti_name: session?.user.name })
             }
             return { ...t, feedbacks }
           }
