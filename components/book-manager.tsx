@@ -1,9 +1,18 @@
 import { type ChangeEvent } from "react"
 import { Button } from "@/components/ui/button"
 import { formatDate } from "@/lib/format"
-import type { BookInfo } from "@/lib/types"
-import { BookOpen, FileUp, Loader2, Menu, Trash2, ChevronLeft, ChevronRight } from "lucide-react"
+import type { BookInfo, AuthSession } from "@/lib/types"
+import { BookOpen, FileUp, Loader2, Menu, Trash2, ChevronLeft, ChevronRight, User, Settings, LogOut, ChevronDown } from "lucide-react"
 import { cn } from "@/lib/utils"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuGroup,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 function getBookLabel(book: BookInfo) {
   return book.book_title || book.file_name || book.book_id
@@ -23,6 +32,8 @@ export function BookManager({
   onUpload,
   onDelete,
   onOpenMobileMenu,
+  session,
+  onLogout,
 }: {
   books: BookInfo[]
   isLoadingBooks: boolean
@@ -37,23 +48,25 @@ export function BookManager({
   onUpload: (event: ChangeEvent<HTMLInputElement>) => void
   onDelete: (book: BookInfo) => void
   onOpenMobileMenu: () => void
+  session: AuthSession
+  onLogout: () => void
 }) {
   const totalPages = Math.max(1, Math.ceil(total / size))
 
   return (
     <section className="flex h-full min-h-0 min-w-0 flex-col overflow-hidden bg-background">
       {/* Header */}
-      <header className={cn("flex shrink-0 items-center justify-between gap-3 border-b border-border bg-card/60 px-4 py-4 backdrop-blur md:px-6", !canManageBooks && "justify-center")}>
-        <div className={cn("flex items-center gap-3", !canManageBooks && "w-full justify-center")}>
+      <header className="flex shrink-0 items-center justify-between gap-3 border-b border-border bg-card/60 px-4 py-4 backdrop-blur md:px-6">
+        <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={onOpenMobileMenu}
-            className={cn("inline-flex size-9 items-center justify-center rounded-lg border border-border text-muted-foreground lg:hidden", !canManageBooks && "absolute left-4 md:left-6")}
+            className="inline-flex size-9 items-center justify-center rounded-lg border border-border text-muted-foreground lg:hidden"
             aria-label="মেনু খুলুন"
           >
             <Menu className="size-5" />
           </button>
-          <div className={cn(!canManageBooks && "text-center")}>
+          <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-primary">
               Library
             </p>
@@ -63,14 +76,59 @@ export function BookManager({
           </div>
         </div>
 
-        {canManageBooks ? (
-          <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:opacity-90 aria-disabled:opacity-60">
-            <input type="file" accept=".md" onChange={onUpload} disabled={isUploading} className="hidden" />
-            {isUploading ? <Loader2 className="size-4 animate-spin" /> : <FileUp className="size-4" />}
-            <span className="hidden sm:inline">{isUploading ? "আপলোড হচ্ছে..." : "নতুন কিতাব আপলোড"}</span>
-            <span className="sm:hidden">{isUploading ? "..." : "আপলোড"}</span>
-          </label>
-        ) : null}
+        <div className="flex items-center gap-3">
+          {canManageBooks ? (
+            <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:opacity-90 aria-disabled:opacity-60">
+              <input type="file" accept=".md" onChange={onUpload} disabled={isUploading} className="hidden" />
+              {isUploading ? <Loader2 className="size-4 animate-spin" /> : <FileUp className="size-4" />}
+              <span className="hidden sm:inline">{isUploading ? "আপলোড হচ্ছে..." : "নতুন কিতাব আপলোড"}</span>
+              <span className="sm:hidden">{isUploading ? "..." : "আপলোড"}</span>
+            </label>
+          ) : null}
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                className="flex items-center gap-2 rounded-full border border-border bg-card py-1.5 pl-1.5 pr-3 text-sm font-medium transition hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <span className="inline-flex size-6 items-center justify-center rounded-full bg-primary font-semibold text-primary-foreground text-xs">
+                  {session.user.name.slice(0, 1).toUpperCase()}
+                </span>
+                <span className="hidden md:inline-block max-w-[100px] truncate text-foreground">
+                  {session.user.name}
+                </span>
+                <ChevronDown className="size-3.5 text-muted-foreground" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuGroup>
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium leading-none">{session.user.name}</p>
+                    <p className="text-xs leading-none text-muted-foreground">
+                      {session.user.email}
+                    </p>
+                  </div>
+                </DropdownMenuLabel>
+              </DropdownMenuGroup>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="cursor-pointer">
+                <User className="mr-2 size-4" />
+                <span>Profile</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer">
+                <Settings className="mr-2 size-4" />
+                <span>Settings</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive" onClick={onLogout}>
+                <LogOut className="mr-2 size-4" />
+                <span>Logout</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </header>
 
       <div className="flex-1 overflow-auto p-4 md:p-6 lg:p-8 flex flex-col">
