@@ -143,22 +143,8 @@ export function ChatMain({
           </span>
           
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <div
-                role="button"
-                tabIndex={0}
-                className="flex items-center gap-2 rounded-full border border-border bg-card py-1.5 pl-1.5 pr-3 text-sm font-medium transition hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer"
-              >
-                <span className="inline-flex size-6 items-center justify-center rounded-full bg-primary font-semibold text-primary-foreground text-xs">
-                  {session.user.name.slice(0, 1).toUpperCase()}
-                </span>
-                <span className="hidden md:inline-block max-w-[100px] truncate text-foreground">
-                  {session.user.name}
-                </span>
-                <ChevronDown className="size-3.5 text-muted-foreground" />
-              </div>
             <DropdownMenuTrigger
-              className="flex items-center gap-2 rounded-full border border-border bg-card py-1.5 pl-1.5 pr-3 text-sm font-medium transition hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="flex items-center gap-2 rounded-full border border-border bg-card py-1.5 pl-1.5 pr-3 text-sm font-medium transition hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer"
             >
               <span className="inline-flex size-6 items-center justify-center rounded-full bg-primary font-semibold text-primary-foreground text-xs">
                 {session.user.name.slice(0, 1).toUpperCase()}
