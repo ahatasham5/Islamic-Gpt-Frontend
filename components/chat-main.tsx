@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { confidenceLabels, type DraftConversation, type ChatTurn, type ServerState } from "@/lib/app-types"
 import { ArrowUp, BookOpen, Check, Copy, FileSearch, Menu, PanelRightClose, PanelRightOpen, ShieldQuestion, Sparkles, User, Settings, LogOut, ChevronDown, ThumbsUp, ThumbsDown } from "lucide-react"
+import { SettingsDialog } from "@/components/settings-dialog"
 import type { AuthSession } from "@/lib/types"
 import {
   DropdownMenu,
@@ -55,8 +56,7 @@ export function ChatMain({
   onSelectTurn,
   onStreamDone,
   onOpenMobileMenu,
-  onToggleSources,
-  isSourcesOpen,
+  onOpenSources,
   session,
   onLogout,
   onFeedback,
@@ -74,14 +74,15 @@ export function ChatMain({
   onSelectTurn: (id: string) => void
   onStreamDone: () => void
   onOpenMobileMenu: () => void
-  onToggleSources: () => void
-  isSourcesOpen: boolean
+  onOpenSources?: () => void
   session: AuthSession
   onLogout: () => void
   onFeedback?: (messageId: string, isGood: boolean) => void
 }) {
   const scrollRef = useRef<HTMLDivElement | null>(null)
   const textareaRef = useRef<HTMLTextAreaElement | null>(null)
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
+  const [settingsTab, setSettingsTab] = useState<"profile" | "security">("profile")
   const turns = conversation?.turns ?? []
   const hasMessages = turns.length > 0 || Boolean(pendingQuestion)
 
@@ -142,13 +143,15 @@ export function ChatMain({
           </span>
           
           <DropdownMenu>
-            <DropdownMenuTrigger className="flex items-center gap-2 rounded-full border border-border bg-card py-1.5 pl-1.5 pr-3 text-sm font-medium transition hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer">
+            <DropdownMenuTrigger
+              className="flex items-center gap-2 rounded-full border border-border bg-card py-1.5 pl-1.5 pr-3 text-sm font-medium transition hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer"
+            >
               <span className="inline-flex size-6 items-center justify-center rounded-full bg-primary font-semibold text-primary-foreground text-xs">
-                  {session.user.name.slice(0, 1).toUpperCase()}
-                </span>
-                <span className="hidden md:inline-block max-w-[100px] truncate text-foreground">
-                  {session.user.name}
-                </span>
+                {session.user.name.slice(0, 1).toUpperCase()}
+              </span>
+              <span className="hidden md:inline-block max-w-[100px] truncate text-foreground">
+                {session.user.name}
+              </span>
               <ChevronDown className="size-3.5 text-muted-foreground" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
@@ -163,11 +166,17 @@ export function ChatMain({
                 </DropdownMenuLabel>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="cursor-pointer">
+              <DropdownMenuItem className="cursor-pointer" onClick={() => { 
+                setSettingsTab("profile"); 
+                setIsSettingsOpen(true); 
+              }}>
                 <User className="mr-2 size-4" />
                 <span>Profile</span>
               </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer">
+              <DropdownMenuItem className="cursor-pointer" onClick={() => { 
+                setSettingsTab("security"); 
+                setIsSettingsOpen(true); 
+              }}>
                 <Settings className="mr-2 size-4" />
                 <span>Settings</span>
               </DropdownMenuItem>
@@ -243,6 +252,12 @@ export function ChatMain({
           </div>
         )}
       </div>
+      <SettingsDialog 
+        open={isSettingsOpen} 
+        onOpenChange={setIsSettingsOpen} 
+        session={session} 
+        defaultTab={settingsTab} 
+      />
 
       {/* Composer */}
       <div className="sticky bottom-0 z-20 shrink-0 bg-gradient-to-b from-background to-card/30 px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-4 md:px-6">

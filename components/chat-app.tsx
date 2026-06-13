@@ -42,7 +42,31 @@ export function ChatApp() {
   const [activeConversationId, setActiveConversationId] = useState(initialConversations[0].id)
   const [query, setQuery] = useState("")
   const [pendingTurn, setPendingTurn] = useState<{ conversationId: string; question: string } | null>(null)
-  const [viewMode, setViewMode] = useState<ViewMode>("chat")
+  const [viewMode, setViewModeState] = useState<ViewMode>(() => {
+    if (typeof window !== "undefined") {
+      const urlParams = new URLSearchParams(window.location.search)
+      const view = urlParams.get("view") as ViewMode
+      if (view === "books" || view === "chat") return view
+      
+      const saved = sessionStorage.getItem("viewMode") as ViewMode
+      if (saved === "books" || saved === "chat") return saved
+    }
+    return "chat"
+  })
+
+  function setViewMode(mode: ViewMode) {
+    setViewModeState(mode)
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("viewMode", mode)
+      const url = new URL(window.location.href)
+      if (mode === "chat") {
+        url.searchParams.delete("view")
+      } else {
+        url.searchParams.set("view", mode)
+      }
+      window.history.replaceState({}, "", url)
+    }
+  }
   const [selectedTurnId, setSelectedTurnId] = useState<string | null>(null)
   const [thinkingSource, setThinkingSource] = useState<Source | null>(null)
   const [streamingTurnId, setStreamingTurnId] = useState<string | null>(null)
@@ -60,7 +84,7 @@ export function ChatApp() {
     const savedChat = sessionStorage.getItem("activeChat")
     if (savedChat) {
       setTimeout(() => {
-        handleSelectConversation(savedChat)
+        handleSelectConversation(savedChat, false)
       }, 0)
     }
   }, [])
@@ -115,10 +139,12 @@ export function ChatApp() {
     setMobileNavOpen(false)
   }
 
-  async function handleSelectConversation(id: string) {
+  async function handleSelectConversation(id: string, switchView = true) {
     setActiveConversationId(id)
     sessionStorage.setItem("activeChat", id)
-    setViewMode("chat")
+    if (switchView) {
+      setViewMode("chat")
+    }
     setMobileNavOpen(false)
 
     const conversation = conversations.find((c) => c.id === id)
@@ -138,7 +164,7 @@ export function ChatApp() {
 
           return {
             id: String(m.message_id ?? m.id ?? `turn-${i}`),
-            question: m.query || "",
+            question: m.user_query || m.query || "",
             response: {
               ...m,
               ...parsedResponse
@@ -251,7 +277,7 @@ export function ChatApp() {
             if (existingIdx >= 0) {
               feedbacks[existingIdx].is_good = isGood
             } else {
-              feedbacks.push({ is_good: isGood, mufti_name: session?.user.name })
+              feedbacks.push({ is_good: isGood, feedback_text: null, mufti_name: session?.user.name })
             }
             return { ...t, feedbacks }
           }
@@ -362,6 +388,8 @@ export function ChatApp() {
           onUpload={handleUpload}
           onDelete={handleDelete}
           onOpenMobileMenu={() => setMobileNavOpen(true)}
+          session={session}
+          onLogout={handleLogout}
         />
       ) : (
         <ChatMain
