@@ -5,7 +5,7 @@ import { FeedbackDialog } from "@/components/feedback-dialog"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { confidenceLabels, type DraftConversation, type ChatTurn, type ServerState } from "@/lib/app-types"
-import { ArrowUp, BookOpen, Check, Copy, FileSearch, Menu, PanelRightClose, PanelRightOpen, ShieldQuestion, Sparkles, User, Settings, LogOut, ChevronDown, ThumbsUp, ThumbsDown, MessageSquare } from "lucide-react"
+import { ArrowUp, BookOpen, Check, Copy, FileSearch, Menu, PanelRightClose, PanelRightOpen, ShieldQuestion, Sparkles, User, Settings, LogOut, ChevronDown, ThumbsUp, ThumbsDown, MessageSquare, Mail } from "lucide-react"
 
 import type { AuthSession } from "@/lib/types"
 import {
