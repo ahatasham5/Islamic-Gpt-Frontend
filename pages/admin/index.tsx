@@ -13,7 +13,7 @@ function AdminPage() {
   return (
     <>
       <Head>
-        <title>ফতোয়া চ্যাট বট — Admin</title>
+        <title>ইসলামী প্রশ্নোত্তর</title>
       </Head>
       <ChatApp />
     </>

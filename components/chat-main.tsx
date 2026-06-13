@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { confidenceLabels, type DraftConversation, type ChatTurn, type ServerState } from "@/lib/app-types"
 import { ArrowUp, BookOpen, Check, Copy, FileSearch, Menu, PanelRightClose, PanelRightOpen, ShieldQuestion, Sparkles, User, Settings, LogOut, ChevronDown, ThumbsUp, ThumbsDown } from "lucide-react"
-import { SettingsDialog } from "@/components/settings-dialog"
+
 import type { AuthSession } from "@/lib/types"
 import {
   DropdownMenu,
@@ -60,6 +60,10 @@ export function ChatMain({
   session,
   onLogout,
   onFeedback,
+  onOpenSettings,
+  hasMoreMessages,
+  isLoadingMoreMessages,
+  onLoadMoreMessages,
 }: {
   conversation: DraftConversation | undefined
   selectedTurnId: string | null
@@ -78,11 +82,13 @@ export function ChatMain({
   session: AuthSession
   onLogout: () => void
   onFeedback?: (messageId: string, isGood: boolean) => void
+  onOpenSettings: (tab: "profile" | "security") => void
+  hasMoreMessages?: boolean
+  isLoadingMoreMessages?: boolean
+  onLoadMoreMessages?: () => void
 }) {
   const scrollRef = useRef<HTMLDivElement | null>(null)
   const textareaRef = useRef<HTMLTextAreaElement | null>(null)
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
-  const [settingsTab, setSettingsTab] = useState<"profile" | "security">("profile")
   const turns = conversation?.turns ?? []
   const hasMessages = turns.length > 0 || Boolean(pendingQuestion)
 
@@ -166,17 +172,11 @@ export function ChatMain({
                 </DropdownMenuLabel>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="cursor-pointer" onClick={() => { 
-                setSettingsTab("profile"); 
-                setIsSettingsOpen(true); 
-              }}>
+              <DropdownMenuItem className="cursor-pointer" onClick={() => onOpenSettings("profile")}>
                 <User className="mr-2 size-4" />
                 <span>Profile</span>
               </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer" onClick={() => { 
-                setSettingsTab("security"); 
-                setIsSettingsOpen(true); 
-              }}>
+              <DropdownMenuItem className="cursor-pointer" onClick={() => onOpenSettings("security")}>
                 <Settings className="mr-2 size-4" />
                 <span>Settings</span>
               </DropdownMenuItem>
@@ -221,6 +221,19 @@ export function ChatMain({
           </div>
         ) : (
           <div className="mx-auto max-w-3xl space-y-10">
+            {hasMoreMessages && (
+              <div className="flex justify-center pb-4">
+                <button
+                  type="button"
+                  onClick={onLoadMoreMessages}
+                  disabled={isLoadingMoreMessages}
+                  className="rounded-full border border-border bg-card px-4 py-2 text-xs font-medium text-muted-foreground shadow-sm transition hover:bg-accent hover:text-foreground disabled:opacity-50"
+                >
+                  {isLoadingMoreMessages ? "Loading previous..." : "Load previous messages"}
+                </button>
+              </div>
+            )}
+            
             {turns.map((turn) => (
               <TurnBlock
                 key={turn.id}
@@ -252,12 +265,6 @@ export function ChatMain({
           </div>
         )}
       </div>
-      <SettingsDialog 
-        open={isSettingsOpen} 
-        onOpenChange={setIsSettingsOpen} 
-        session={session} 
-        defaultTab={settingsTab} 
-      />
 
       {/* Composer */}
       <div className="sticky bottom-0 z-20 shrink-0 bg-gradient-to-b from-background to-card/30 px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-4 md:px-6">
@@ -297,13 +304,38 @@ export function ChatMain({
 }
 
 function UserQuestionBubble({ question }: { question: string }) {
+  const [copied, setCopied] = useState(false)
+
+  function handleCopy() {
+    navigator.clipboard.writeText(question)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
   return (
-    <div className="flex justify-end">
-      <div
-        dir="auto"
-        className="max-w-[85%] sm:max-w-[75%] rounded-3xl rounded-tr-sm bg-secondary px-5 py-3 text-base leading-relaxed text-foreground text-justify"
-      >
-        {question}
+    <div className="flex justify-end group">
+      <div className="flex flex-col items-end gap-1 max-w-[85%] sm:max-w-[75%]">
+        <div
+          dir="auto"
+          className="rounded-3xl rounded-tr-sm bg-secondary px-5 py-3 text-base leading-relaxed text-foreground text-justify"
+        >
+          {question}
+        </div>
+        <button
+          onClick={handleCopy}
+          className="inline-flex items-center gap-1.5 px-2 py-1 text-[11px] font-medium text-muted-foreground opacity-0 transition-opacity hover:text-foreground group-hover:opacity-100"
+          title="প্রশ্ন কপি করুন"
+        >
+          {copied ? (
+            <>
+              <Check className="size-3" /> কপি হয়েছে
+            </>
+          ) : (
+            <>
+              <Copy className="size-3" /> কপি করুন
+            </>
+          )}
+        </button>
       </div>
     </div>
   )

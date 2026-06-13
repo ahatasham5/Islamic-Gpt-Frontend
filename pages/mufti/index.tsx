@@ -13,7 +13,7 @@ function MuftiPage() {
   return (
     <>
       <Head>
-        <title>ফতোয়া চ্যাট বট — Mufti</title>
+        <title>ইসলামী প্রশ্নোত্তর</title>
       </Head>
       <ChatApp />
     </>
