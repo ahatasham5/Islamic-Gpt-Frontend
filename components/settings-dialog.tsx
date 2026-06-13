@@ -100,62 +100,58 @@ export function SettingsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] p-0 overflow-hidden gap-0">
-        <DialogHeader className="p-6 sm:p-8 pb-4">
-          <DialogTitle className="font-heading text-xl font-bold">সেটিংস</DialogTitle>
-          <DialogDescription className="text-sm">
+      <DialogContent className="sm:max-w-[550px] p-0 overflow-hidden gap-0">
+        <DialogHeader className="p-6 sm:p-8 pb-6 border-b bg-gradient-to-br from-primary/5 to-transparent">
+          <DialogTitle className="font-heading text-2xl font-bold text-primary">সেটিংস</DialogTitle>
+          <DialogDescription className="text-base text-foreground/80 mt-1.5 font-medium">
             আপনার অ্যাকাউন্টের প্রোফাইল এবং নিরাপত্তা পরিচালনা করুন
           </DialogDescription>
         </DialogHeader>
 
-        <div className="px-6 sm:px-8">
+        <div className="px-6 sm:px-8 py-6">
           <Tabs value={tab} onValueChange={(v) => setTab(v as any)} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 rounded-lg h-12">
-              <TabsTrigger value="profile" className="rounded-md text-sm font-semibold h-full">
-                <UserCog className="mr-2 size-4" />
+            <TabsList className="grid w-full grid-cols-2 rounded-lg h-10 bg-muted p-0.5 gap-0.5">
+              <TabsTrigger value="profile" className="rounded-md text-sm font-bold h-full flex items-center justify-center px-3">
+                <UserCog className="mr-1.5 size-4" />
                 প্রোফাইল
               </TabsTrigger>
-              <TabsTrigger value="security" className="rounded-md text-sm font-semibold h-full">
-                <ShieldCheck className="mr-2 size-4" />
+              <TabsTrigger value="security" className="rounded-md text-sm font-bold h-full flex items-center justify-center px-3">
+                <ShieldCheck className="mr-1.5 size-4" />
                 নিরাপত্তা
               </TabsTrigger>
             </TabsList>
 
-            <div className="mt-4 pb-6 min-h-[320px]">
-              <TabsContent value="profile" className="mt-0 outline-none space-y-4 animate-fade-rise">
-                {/* <div className="mb-4 rounded-lg border border-border bg-secondary/45 p-4">
-                  <div className="flex gap-3">
-                    <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-lg bg-background text-primary">
-                      <UserCog className="size-5" />
-                    </span>
-                    <div className="min-w-0">
-                      <h2 className="font-heading text-base font-bold">প্রোফাইল তথ্য</h2>
-                      <p className="mt-0.5 text-sm leading-relaxed text-muted-foreground">
-                        আপনার ব্যক্তিগত তথ্য আপডেট করুন
-                      </p>
-                    </div>
-                  </div>
-                </div> */}
-
-                <form onSubmit={handleUpdateProfile} className="space-y-4">
-                  <div className="space-y-4">
-                    <div className="space-y-2">
+            <div className="mt-6 pb-2 min-h-[360px]">
+              <TabsContent value="profile" className="mt-0 outline-none space-y-5 animate-fade-rise">
+                <form onSubmit={handleUpdateProfile} className="space-y-5">
+                  <div className="space-y-5">
+                    <div className="space-y-2.5">
                       <label htmlFor="email" className="text-sm font-medium text-foreground flex items-center gap-2">
                         <Mail className="size-4 text-muted-foreground" />
                         ইমেইল এড্রেস
                       </label>
-                      <Input id="email" value={session.user.email} disabled className="bg-muted/50 h-11 text-base" />
+                      <Input 
+                        id="email" 
+                        value={session.user.email} 
+                        disabled 
+                        className="h-11 text-sm" 
+                      />
                     </div>
                     
-                    <div className="space-y-2">
+                    <div className="space-y-2.5">
                       <label htmlFor="role" className="text-sm font-medium text-foreground flex items-center gap-2">
                         <Tag className="size-4 text-muted-foreground" />
                         রোল (Role)
                       </label>
-                      <Input id="role" value={session.user.role} disabled className="bg-muted/50 h-11 text-base capitalize" />
+                      <Input 
+                        id="role" 
+                        value={session.user.role} 
+                        disabled 
+                        className="h-11 text-sm capitalize" 
+                      />
                     </div>
 
-                    <div className="space-y-2">
+                    <div className="space-y-2.5">
                       <label htmlFor="name" className="text-sm font-medium text-foreground flex items-center gap-2">
                         <User className="size-4 text-muted-foreground" />
                         আপনার নাম
@@ -166,25 +162,27 @@ export function SettingsDialog({
                         onChange={(e) => setName(e.target.value)}
                         placeholder="আপনার নাম লিখুন"
                         required
-                        className="h-11 text-base transition-colors focus-visible:ring-primary/20"
+                        className="h-11 text-sm"
                       />
                     </div>
                   </div>
 
                   {profileError && (
-                    <p className="rounded-lg border border-destructive/25 bg-destructive/10 px-3.5 py-2.5 text-sm text-destructive">
-                      {profileError}
-                    </p>
+                    <div className="rounded-lg border-2 border-red-400 bg-red-50 dark:bg-red-950/40 px-4 py-3.5 text-sm font-semibold text-red-700 dark:text-red-400 flex items-start gap-2.5">
+                      <span className="text-xl leading-none">⚠️</span>
+                      <span className="flex-1">{profileError}</span>
+                    </div>
                   )}
                   {profileMessage && (
-                    <p className="rounded-lg border border-green-600/25 bg-green-50 px-3.5 py-2.5 text-sm text-green-600">
-                      {profileMessage}
-                    </p>
+                    <div className="rounded-lg border-2 border-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-4 py-3.5 text-sm font-semibold text-emerald-700 dark:text-emerald-400 flex items-start gap-2.5">
+                      <span className="text-xl leading-none">✓</span>
+                      <span className="flex-1">{profileMessage}</span>
+                    </div>
                   )}
 
                   <Button 
                     type="submit" 
-                    className="h-11 text-base w-full rounded-lg font-medium" 
+                    className="h-12 text-base w-full rounded-lg font-bold shadow-md hover:shadow-lg transition-all bg-primary hover:bg-primary/90 text-primary-foreground" 
                     disabled={isUpdatingProfile || name === session.user.name}
                   >
                     {isUpdatingProfile ? "আপডেট হচ্ছে..." : "প্রোফাইল আপডেট করুন"}
@@ -192,15 +190,15 @@ export function SettingsDialog({
                 </form>
               </TabsContent>
 
-              <TabsContent value="security" className="mt-0 outline-none space-y-4 animate-fade-rise">
-                <div className="mb-4 rounded-lg border border-border bg-secondary/45 p-4">
+              <TabsContent value="security" className="mt-0 outline-none space-y-5 animate-fade-rise">
+                <div className="rounded-lg border-2 border-primary/30 bg-gradient-to-br from-primary/10 to-primary/5 p-4">
                   <div className="flex gap-3">
-                    <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-lg bg-background text-primary">
-                      <ShieldCheck className="size-5" />
+                    <span className="inline-flex size-11 shrink-0 items-center justify-center rounded-lg bg-primary/20 border-2 border-primary/40 text-primary shadow-sm">
+                      <ShieldCheck className="size-5.5" />
                     </span>
                     <div className="min-w-0">
-                      <h2 className="font-heading text-base font-bold">পাসওয়ার্ড পরিবর্তন</h2>
-                      <p className="mt-0.5 text-sm leading-relaxed text-muted-foreground">
+                      <h2 className="font-heading text-base font-bold text-foreground">পাসওয়ার্ড পরিবর্তন</h2>
+                      <p className="mt-1.5 text-sm leading-relaxed text-foreground/75 font-medium">
                         {passwordStep === "request" 
                           ? "আপনার বর্তমান পাসওয়ার্ড দিয়ে নতুন পাসওয়ার্ডের জন্য ওটিপি (OTP) অনুরোধ করুন।"
                           : "ইমেইলে প্রাপ্ত ওটিপি (OTP) এবং নতুন পাসওয়ার্ড প্রদান করুন।"}
@@ -210,8 +208,8 @@ export function SettingsDialog({
                 </div>
 
                 {passwordStep === "request" ? (
-                  <form onSubmit={handleRequestPasswordChange} className="space-y-4">
-                    <div className="space-y-2">
+                  <form onSubmit={handleRequestPasswordChange} className="space-y-5">
+                    <div className="space-y-2.5">
                       <label htmlFor="old_password" className="text-sm font-medium text-foreground flex items-center gap-2">
                         <Lock className="size-4 text-muted-foreground" />
                         বর্তমান পাসওয়ার্ড
@@ -224,41 +222,43 @@ export function SettingsDialog({
                           onChange={(e) => setOldPassword(e.target.value)}
                           placeholder="আপনার বর্তমান পাসওয়ার্ড"
                           required
-                          className="h-11 text-base transition-colors focus-visible:ring-primary/20 pr-10"
+                          className="h-11 text-sm pr-11"
                         />
                         <button
                           type="button"
                           onClick={() => setShowOldPassword(!showOldPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-primary/60 hover:text-primary transition-colors p-1 rounded-md hover:bg-primary/10"
                           aria-label={showOldPassword ? "Hide password" : "Show password"}
                         >
-                          {showOldPassword ? <EyeOff className="size-5" /> : <Eye className="size-5" />}
+                          {showOldPassword ? <EyeOff className="size-4.5" /> : <Eye className="size-4.5" />}
                         </button>
                       </div>
                     </div>
 
                     {securityError && (
-                      <p className="rounded-lg border border-destructive/25 bg-destructive/10 px-3.5 py-2.5 text-sm text-destructive">
-                        {securityError}
-                      </p>
+                      <div className="rounded-lg border-2 border-red-400 bg-red-50 dark:bg-red-950/40 px-4 py-3.5 text-sm font-semibold text-red-700 dark:text-red-400 flex items-start gap-2.5">
+                        <span className="text-xl leading-none">⚠️</span>
+                        <span className="flex-1">{securityError}</span>
+                      </div>
                     )}
                     {securityMessage && (
-                      <p className="rounded-lg border border-green-600/25 bg-green-50 px-3.5 py-2.5 text-sm text-green-600">
-                        {securityMessage}
-                      </p>
+                      <div className="rounded-lg border-2 border-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-4 py-3.5 text-sm font-semibold text-emerald-700 dark:text-emerald-400 flex items-start gap-2.5">
+                        <span className="text-xl leading-none">✓</span>
+                        <span className="flex-1">{securityMessage}</span>
+                      </div>
                     )}
 
                     <Button 
                       type="submit" 
-                      className="h-11 text-base w-full rounded-lg font-medium" 
+                      className="h-12 text-base w-full rounded-lg font-bold shadow-md hover:shadow-lg transition-all bg-primary hover:bg-primary/90 text-primary-foreground" 
                       disabled={isChangingPassword || !oldPassword}
                     >
                       {isChangingPassword ? "ওটিপি (OTP) পাঠানো হচ্ছে..." : "পাসওয়ার্ড পরিবর্তন শুরু করুন"}
                     </Button>
                   </form>
                 ) : (
-                  <form onSubmit={handleVerifyPasswordChange} className="space-y-4">
-                    <div className="space-y-2">
+                  <form onSubmit={handleVerifyPasswordChange} className="space-y-5">
+                    <div className="space-y-2.5">
                       <label htmlFor="otp" className="text-sm font-medium text-foreground flex items-center gap-2">
                         <KeyRound className="size-4 text-muted-foreground" />
                         ওটিপি (OTP)
@@ -269,11 +269,11 @@ export function SettingsDialog({
                         onChange={(e) => setOtp(e.target.value)}
                         placeholder="ইমেইলে প্রাপ্ত ওটিপি"
                         required
-                        className="h-11 text-base transition-colors focus-visible:ring-primary/20"
+                        className="h-11 text-sm"
                       />
                     </div>
                     
-                    <div className="space-y-2">
+                    <div className="space-y-2.5">
                       <label htmlFor="new_password" className="text-sm font-medium text-foreground flex items-center gap-2">
                         <Lock className="size-4 text-muted-foreground" />
                         নতুন পাসওয়ার্ড
@@ -286,33 +286,35 @@ export function SettingsDialog({
                           onChange={(e) => setNewPassword(e.target.value)}
                           placeholder="নতুন শক্তিশালী পাসওয়ার্ড"
                           required
-                          className="h-11 text-base transition-colors focus-visible:ring-primary/20 pr-10"
+                          className="h-11 text-sm pr-11"
                         />
                         <button
                           type="button"
                           onClick={() => setShowNewPassword(!showNewPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-primary/60 hover:text-primary transition-colors p-1 rounded-md hover:bg-primary/10"
                           aria-label={showNewPassword ? "Hide password" : "Show password"}
                         >
-                          {showNewPassword ? <EyeOff className="size-5" /> : <Eye className="size-5" />}
+                          {showNewPassword ? <EyeOff className="size-4.5" /> : <Eye className="size-4.5" />}
                         </button>
                       </div>
                     </div>
 
                     {securityError && (
-                      <p className="rounded-lg border border-destructive/25 bg-destructive/10 px-3.5 py-2.5 text-sm text-destructive">
-                        {securityError}
-                      </p>
+                      <div className="rounded-lg border-2 border-red-400 bg-red-50 dark:bg-red-950/40 px-4 py-3.5 text-sm font-semibold text-red-700 dark:text-red-400 flex items-start gap-2.5">
+                        <span className="text-xl leading-none">⚠️</span>
+                        <span className="flex-1">{securityError}</span>
+                      </div>
                     )}
                     {securityMessage && (
-                      <p className="rounded-lg border border-green-600/25 bg-green-50 px-3.5 py-2.5 text-sm text-green-600">
-                        {securityMessage}
-                      </p>
+                      <div className="rounded-lg border-2 border-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-4 py-3.5 text-sm font-semibold text-emerald-700 dark:text-emerald-400 flex items-start gap-2.5">
+                        <span className="text-xl leading-none">✓</span>
+                        <span className="flex-1">{securityMessage}</span>
+                      </div>
                     )}
 
                     <Button 
                       type="submit" 
-                      className="h-11 text-base w-full rounded-lg font-medium" 
+                      className="h-12 text-base w-full rounded-lg font-bold shadow-md hover:shadow-lg transition-all bg-primary hover:bg-primary/90 text-primary-foreground" 
                       disabled={isChangingPassword || !otp || !newPassword}
                     >
                       {isChangingPassword ? "যাচাই করা হচ্ছে..." : "নতুন পাসওয়ার্ড নিশ্চিত করুন"}
