@@ -17,6 +17,7 @@ type AuthContextValue = {
   resendOtp: (email: string) => Promise<string>
   forgotPassword: (email: string) => Promise<string>
   logout: () => void
+  fetchSession: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
