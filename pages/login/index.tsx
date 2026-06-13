@@ -34,7 +34,7 @@ export default function LoginPage() {
   return (
     <>
       <Head>
-        <title>Login — ফতোয়া চ্যাট বট</title>
+        <title>Login — ইসলামী প্রশ্নোত্তর</title>
       </Head>
       <LoginScreen
         apiError={error}

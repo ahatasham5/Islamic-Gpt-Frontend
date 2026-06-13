@@ -20,6 +20,12 @@ export function useBooks(enabled: boolean) {
 
     try {
       const response = await booksApi.list(page, size)
+      
+      if (response.books.length === 0 && response.total > 0 && page > 1) {
+        setPage(Math.max(1, Math.ceil(response.total / size)))
+        return
+      }
+      
       setBooks(response.books)
       setTotal(response.total)
     } catch (error) {

@@ -8,19 +8,34 @@ export function useSessions(enabled: boolean) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
 
-  const loadSessions = useCallback(async () => {
+  const [hasMore, setHasMore] = useState(false)
+  const [page, setPage] = useState(1)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
+
+  const loadSessions = useCallback(async (reset = true) => {
     if (!enabled) return
-    setIsLoading(true)
+    if (reset) {
+      setIsLoading(true)
+      setPage(1)
+    } else {
+      setIsLoadingMore(true)
+    }
     setError("")
+    
     try {
-      const response = await sessionsApi.getSessions(1, 50)
-      setSessions(response.sessions)
+      const currentPage = reset ? 1 : page + 1
+      const response = await sessionsApi.getSessions(currentPage, 30) // Use size 30
+      
+      setSessions((prev) => reset ? response.sessions : [...prev, ...response.sessions])
+      setHasMore(response.page * response.size < response.total)
+      if (!reset) setPage(currentPage)
     } catch (err) {
       setError(getApiErrorMessage(err))
     } finally {
-      setIsLoading(false)
+      if (reset) setIsLoading(false)
+      else setIsLoadingMore(false)
     }
-  }, [enabled])
+  }, [enabled, page])
 
   useEffect(() => {
     loadSessions()
@@ -52,8 +67,11 @@ export function useSessions(enabled: boolean) {
   return {
     sessions,
     isLoading,
+    isLoadingMore,
+    hasMore,
     error,
     loadSessions,
+    loadMoreSessions: () => loadSessions(false),
     deleteSession,
     pinSession,
   }

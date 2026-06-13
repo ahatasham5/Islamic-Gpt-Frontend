@@ -158,7 +158,7 @@ export function CreateMuftiDialog({
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="animate-fade-rise p-5 sm:p-6">
-            <div className="mb-5 rounded-lg border border-border bg-secondary/45 p-4">
+            {/* <div className="mb-5 rounded-lg border border-border bg-secondary/45 p-4">
               <div className="flex gap-3">
                 <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg bg-background text-primary">
                   <Send className="size-4" />
@@ -170,7 +170,7 @@ export function CreateMuftiDialog({
                   </p>
                 </div>
               </div>
-            </div>
+            </div> */}
 
             {error ? (
               <p className="mb-4 rounded-lg border border-destructive/25 bg-destructive/10 px-3.5 py-2.5 text-sm text-destructive">
