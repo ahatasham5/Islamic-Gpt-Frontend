@@ -5,7 +5,8 @@ export const booksApi = {
   list(page: number = 1, size: number = 10) {
     return apiRequest<BookListResponse>({
       method: "GET",
-      url: `/books?page=${page}&size=${size}`,
+      url: "/books",
+      params: { page, size },
     })
   },
 

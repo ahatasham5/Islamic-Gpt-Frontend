@@ -13,6 +13,8 @@ import { ChatSidebar } from "@/components/chat-sidebar"
 import { ChatMain } from "@/components/chat-main"
 import { SourcesPanel } from "@/components/sources-panel"
 import { BookManager } from "@/components/book-manager"
+import { SettingsDialog } from "@/components/settings-dialog"
+import { ConfirmDialog } from "@/components/confirm-dialog"
 import { CreateMuftiDialog } from "@/components/create-mufti-panel"
 import { ThinkingModal } from "@/components/thinking-modal"
 import { Sheet, SheetContent } from "@/components/ui/sheet"
@@ -21,7 +23,7 @@ import { cn } from "@/lib/utils"
 const initialConversations: DraftConversation[] = [
   {
     id: "local-new",
-    title: "New conversation",
+    title: "নতুন আলোচনা",
     turns: [],
     createdAt: new Date().toISOString(),
   },
@@ -74,6 +76,15 @@ export function ChatApp() {
   const [mobileSourcesOpen, setMobileSourcesOpen] = useState(false)
   const [desktopSourcesOpen, setDesktopSourcesOpen] = useState(false)
   const [isCreateMuftiOpen, setIsCreateMuftiOpen] = useState(false)
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
+  const [settingsTab, setSettingsTab] = useState<"profile" | "security">("profile")
+  
+  const [messagePages, setMessagePages] = useState<Record<string, { page: number; hasMore: boolean }>>({})
+  const [isLoadingMoreMessages, setIsLoadingMoreMessages] = useState(false)
+
+  const [bookToDelete, setBookToDelete] = useState<BookInfo | null>(null)
+  const [sessionToDelete, setSessionToDelete] = useState<string | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   const activeConversation = useMemo(
     () => conversations.find((c) => c.id === activeConversationId) ?? conversations[0],
@@ -83,9 +94,14 @@ export function ChatApp() {
   useEffect(() => {
     const savedChat = sessionStorage.getItem("activeChat")
     if (savedChat) {
-      setTimeout(() => {
-        handleSelectConversation(savedChat, false)
-      }, 0)
+      if (savedChat.startsWith("chat") || savedChat.startsWith("local")) {
+        sessionStorage.setItem("activeChat", "local-new")
+        setActiveConversationId("local-new")
+      } else {
+        setTimeout(() => {
+          handleSelectConversation(savedChat, false)
+        }, 0)
+      }
     }
   }, [])
 
@@ -125,7 +141,7 @@ export function ChatApp() {
   function handleNewChat() {
     const conversation: DraftConversation = {
       id: createId("chat"),
-      title: "New conversation",
+      title: "নতুন আলোচনা",
       turns: [],
       createdAt: new Date().toISOString(),
     }
@@ -181,6 +197,10 @@ export function ChatApp() {
             return [...cur, { id, title: data.title, turns, createdAt: data.created_at, isPinned: data.is_pinned }]
           }
         })
+        setMessagePages(prev => ({
+          ...prev,
+          [id]: { page: data.page, hasMore: data.page * data.size < data.total_messages }
+        }))
         setSelectedTurnId(turns.at(-1)?.id ?? null)
       } catch (err) {
         console.error(err)
@@ -199,6 +219,47 @@ export function ChatApp() {
   function handleOpenMuftiManagement() {
     setMobileNavOpen(false)
     setIsCreateMuftiOpen(true)
+  }
+
+  async function handleLoadMoreMessages() {
+    if (!activeConversationId || activeConversationId.startsWith("local") || activeConversationId.startsWith("chat")) return
+    
+    const pageData = messagePages[activeConversationId]
+    if (!pageData || !pageData.hasMore) return
+
+    setIsLoadingMoreMessages(true)
+    try {
+      const data = await sessionsApi.getSession(Number(activeConversationId), pageData.page + 1)
+      const newTurns = data.messages.map((m, i) => {
+        let parsedResponse = m
+        if ('ai_response' in m && m.ai_response) {
+          try {
+            parsedResponse = typeof m.ai_response === 'string' ? JSON.parse(m.ai_response) : m.ai_response
+          } catch (e) {
+            console.error("Failed to parse ai_response", e)
+          }
+        }
+        return {
+          id: String(m.message_id ?? m.id ?? `turn-${i}`),
+          question: m.user_query || m.query || "",
+          response: { ...m, ...parsedResponse },
+          createdAt: m.created_at,
+          feedbacks: m.feedbacks,
+        }
+      })
+      
+      setConversations(cur => cur.map(c => 
+        c.id === activeConversationId ? { ...c, turns: [...newTurns, ...c.turns] } : c
+      ))
+      setMessagePages(prev => ({
+        ...prev,
+        [activeConversationId]: { page: data.page, hasMore: data.page * data.size < data.total_messages }
+      }))
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setIsLoadingMoreMessages(false)
+    }
   }
 
   async function handleAsk(event: FormEvent<HTMLFormElement>) {
@@ -308,16 +369,42 @@ export function ChatApp() {
     await bookState.uploadBook(formData)
   }
 
-  async function handleDelete(book: BookInfo) {
+  function handleDelete(book: BookInfo) {
     if (!canManageBooks) {
       bookState.setUploadMessage("This account does not have permission to manage books.")
       return
     }
 
-    const confirmed = window.confirm(`Delete "${book.book_title || book.file_name}"?`)
-    if (!confirmed) return
+    setBookToDelete(book)
+  }
 
-    await bookState.deleteBook(book)
+  async function confirmDeleteBook() {
+    if (!bookToDelete) return
+    setIsDeleting(true)
+    try {
+      await bookState.deleteBook(bookToDelete)
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setIsDeleting(false)
+      setBookToDelete(null)
+    }
+  }
+
+  async function confirmDeleteSession() {
+    if (!sessionToDelete) return
+    setIsDeleting(true)
+    try {
+      await sessionState.deleteSession(Number(sessionToDelete))
+      if (activeConversationId === sessionToDelete) {
+        handleNewChat()
+      }
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setIsDeleting(false)
+      setSessionToDelete(null)
+    }
   }
 
   if (!session) return null
@@ -343,16 +430,12 @@ export function ChatApp() {
           console.error(e)
         }
       }}
-      onDeleteConversation={async (id) => {
-        try {
-          await sessionState.deleteSession(Number(id))
-          if (activeConversationId === id) {
-            handleNewChat()
-          }
-        } catch (e) {
-          console.error(e)
-        }
+      onDeleteConversation={(id) => {
+        setSessionToDelete(id)
       }}
+      hasMoreSessions={sessionState.hasMore}
+      isLoadingMoreSessions={sessionState.isLoadingMore}
+      onLoadMoreSessions={sessionState.loadMoreSessions}
     />
   )
 
@@ -390,6 +473,10 @@ export function ChatApp() {
           onOpenMobileMenu={() => setMobileNavOpen(true)}
           session={session}
           onLogout={handleLogout}
+          onOpenSettings={(tab) => {
+            setSettingsTab(tab)
+            setIsSettingsOpen(true)
+          }}
         />
       ) : (
         <ChatMain
@@ -419,6 +506,13 @@ export function ChatApp() {
           onOpenMobileMenu={() => setMobileNavOpen(true)}
           onOpenSources={() => setMobileSourcesOpen(true)}
           onFeedback={handleFeedback}
+          onOpenSettings={(tab) => {
+            setSettingsTab(tab)
+            setIsSettingsOpen(true)
+          }}
+          hasMoreMessages={messagePages[activeConversationId]?.hasMore}
+          isLoadingMoreMessages={isLoadingMoreMessages}
+          onLoadMoreMessages={handleLoadMoreMessages}
         />
       )}
 
@@ -437,6 +531,30 @@ export function ChatApp() {
       {session.user.role === "super_admin" ? (
         <CreateMuftiDialog open={isCreateMuftiOpen} onOpenChange={setIsCreateMuftiOpen} />
       ) : null}
+
+      <SettingsDialog 
+        open={isSettingsOpen} 
+        onOpenChange={setIsSettingsOpen} 
+        session={session} 
+        defaultTab={settingsTab} 
+      />
+
+      <ConfirmDialog
+        open={!!bookToDelete}
+        onOpenChange={(open) => { if (!open) setBookToDelete(null) }}
+        title="কিতাব মুছে ফেলুন"
+        description={`আপনি কি নিশ্চিত যে আপনি "${bookToDelete?.book_title || bookToDelete?.file_name}" মুছে ফেলতে চান?`}
+        onConfirm={confirmDeleteBook}
+        isLoading={isDeleting}
+      />
+      <ConfirmDialog
+        open={!!sessionToDelete}
+        onOpenChange={(open) => { if (!open) setSessionToDelete(null) }}
+        title="চ্যাট মুছে ফেলুন"
+        description="আপনি কি নিশ্চিত যে আপনি এই চ্যাটটি মুছে ফেলতে চান? এটি আর ফিরিয়ে আনা যাবে না।"
+        onConfirm={confirmDeleteSession}
+        isLoading={isDeleting}
+      />
     </div>
   )
 }

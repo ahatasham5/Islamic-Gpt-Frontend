@@ -34,6 +34,7 @@ export function BookManager({
   onOpenMobileMenu,
   session,
   onLogout,
+  onOpenSettings,
 }: {
   books: BookInfo[]
   isLoadingBooks: boolean
@@ -50,6 +51,7 @@ export function BookManager({
   onOpenMobileMenu: () => void
   session: AuthSession
   onLogout: () => void
+  onOpenSettings: (tab: "profile" | "security") => void
 }) {
   const totalPages = Math.max(1, Math.ceil(total / size))
 
@@ -87,19 +89,16 @@ export function BookManager({
           ) : null}
 
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button
-                type="button"
-                className="flex items-center gap-2 rounded-full border border-border bg-card py-1.5 pl-1.5 pr-3 text-sm font-medium transition hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                <span className="inline-flex size-6 items-center justify-center rounded-full bg-primary font-semibold text-primary-foreground text-xs">
-                  {session.user.name.slice(0, 1).toUpperCase()}
-                </span>
-                <span className="hidden md:inline-block max-w-[100px] truncate text-foreground">
-                  {session.user.name}
-                </span>
-                <ChevronDown className="size-3.5 text-muted-foreground" />
-              </button>
+            <DropdownMenuTrigger
+              className="flex items-center gap-2 rounded-full border border-border bg-card py-1.5 pl-1.5 pr-3 text-sm font-medium transition hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer"
+            >
+              <span className="inline-flex size-6 items-center justify-center rounded-full bg-primary font-semibold text-primary-foreground text-xs">
+                {session.user.name.slice(0, 1).toUpperCase()}
+              </span>
+              <span className="hidden md:inline-block max-w-[100px] truncate text-foreground">
+                {session.user.name}
+              </span>
+              <ChevronDown className="size-3.5 text-muted-foreground" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuGroup>
@@ -113,11 +112,11 @@ export function BookManager({
                 </DropdownMenuLabel>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="cursor-pointer">
+              <DropdownMenuItem className="cursor-pointer" onClick={() => onOpenSettings("profile")}>
                 <User className="mr-2 size-4" />
                 <span>Profile</span>
               </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer">
+              <DropdownMenuItem className="cursor-pointer" onClick={() => onOpenSettings("security")}>
                 <Settings className="mr-2 size-4" />
                 <span>Settings</span>
               </DropdownMenuItem>

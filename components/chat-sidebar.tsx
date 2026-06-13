@@ -10,8 +10,8 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 function getRoleLabel(role: AuthSession["user"]["role"]) {
-  if (role === "super_admin") return "Super admin"
-  if (role === "mufti") return "Mufti"
+  if (role === "super_admin") return ""
+  if (role === "mufti") return ""
 
   return ""
 }
@@ -31,6 +31,9 @@ export function ChatSidebar({
   onCloseMobile,
   onPinConversation,
   onDeleteConversation,
+  hasMoreSessions,
+  isLoadingMoreSessions,
+  onLoadMoreSessions,
 }: {
   session: AuthSession
   conversations: DraftConversation[]
@@ -46,20 +49,26 @@ export function ChatSidebar({
   onCloseMobile?: () => void
   onPinConversation?: (id: string, isPinned: boolean) => void
   onDeleteConversation?: (id: string) => void
+  hasMoreSessions?: boolean
+  isLoadingMoreSessions?: boolean
+  onLoadMoreSessions?: () => void
 }) {
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden bg-sidebar text-sidebar-foreground">
       {/* Brand */}
 <div className="flex h-[72px] shrink-0 items-center justify-between gap-3 border-b border-border px-4">
-        <div className="flex min-w-0 items-center gap-2.5">
+        <button
+          onClick={onNewChat}
+          className="flex min-w-0 items-center gap-2.5 text-left transition hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-md"
+        >
           <BrandMark size={40} />
           <div className="min-w-0 leading-tight">
-            <p className="truncate font-heading text-sm font-bold">ফতোয়া চ্যাট বট</p>
+            <p className="truncate font-heading text-sm font-bold">ইসলামী প্রশ্নোত্তর</p>
             <p className="truncate text-xs text-muted-foreground">
               {getRoleLabel(session.user.role)}
             </p>
           </div>
-        </div>
+        </button>
         {onCloseMobile ? (
           <button
             type="button"
@@ -129,10 +138,10 @@ export function ChatSidebar({
                 </button>
                 {conversation.id !== "local-new" && onDeleteConversation && onPinConversation && (
                   <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <button className="flex size-7 items-center justify-center rounded-md text-muted-foreground opacity-0 transition hover:bg-sidebar-accent hover:text-foreground group-hover:opacity-100 data-[state=open]:opacity-100">
-                        <MoreVertical className="size-4" />
-                      </button>
+                    <DropdownMenuTrigger
+                      className="flex size-7 items-center justify-center rounded-md text-muted-foreground opacity-0 transition hover:bg-sidebar-accent hover:text-foreground group-hover:opacity-100 data-[state=open]:opacity-100 cursor-pointer"
+                    >
+                      <MoreVertical className="size-4" />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem onClick={() => onPinConversation(conversation.id, !conversation.isPinned)}>
@@ -152,6 +161,16 @@ export function ChatSidebar({
               </div>
             )
           })}
+          
+          {hasMoreSessions && (
+            <button
+              onClick={onLoadMoreSessions}
+              disabled={isLoadingMoreSessions}
+              className="mt-4 w-full rounded-md py-2 text-xs font-medium text-muted-foreground transition hover:bg-sidebar-accent hover:text-foreground disabled:opacity-50"
+            >
+              {isLoadingMoreSessions ? "Loading..." : "Load More"}
+            </button>
+          )}
         </div>
       </div>
 

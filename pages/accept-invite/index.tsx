@@ -76,7 +76,7 @@ export default function AcceptInvitePage() {
     return (
       <>
         <Head>
-          <title>Invalid Invite Link — ফতোয়া চ্যাট বট</title>
+          <title>Invalid Invite Link — ইসলামী প্রশ্নোত্তর</title>
         </Head>
         <main className="grid min-h-screen place-items-center bg-background px-6">
           <div className="w-full max-w-sm text-center">
@@ -105,7 +105,7 @@ export default function AcceptInvitePage() {
     return (
       <>
         <Head>
-          <title>Account Activated — ফতোয়া চ্যাট বট</title>
+          <title>Account Activated — ইসলামী প্রশ্নোত্তর</title>
         </Head>
         <main className="grid min-h-screen place-items-center bg-background px-6">
           <div className="w-full max-w-sm text-center">
@@ -135,7 +135,7 @@ export default function AcceptInvitePage() {
   return (
     <>
       <Head>
-        <title>Set Your Password — ফতোয়া চ্যাট বট</title>
+        <title>Set Your Password — ইসলামী প্রশ্নোত্তর</title>
       </Head>
       <main className="grid min-h-screen grid-cols-1 lg:grid-cols-[1.1fr_1fr]">
         {/* Left panel */}
