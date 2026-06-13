@@ -2,7 +2,7 @@ import { type ChangeEvent } from "react"
 import { Button } from "@/components/ui/button"
 import { formatDate } from "@/lib/format"
 import type { BookInfo, AuthSession } from "@/lib/types"
-import { BookOpen, FileUp, Loader2, Menu, Trash2, ChevronLeft, ChevronRight, User, Settings, LogOut, ChevronDown } from "lucide-react"
+import { BookOpen, FileUp, Loader2, Mail, Menu, Trash2, ChevronLeft, ChevronRight, User, Settings, LogOut, ChevronDown } from "lucide-react"
 import { cn } from "@/lib/utils"
 import {
   DropdownMenu,
@@ -105,7 +105,8 @@ export function BookManager({
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
                     <p className="text-sm font-medium leading-none">{session.user.name}</p>
-                    <p className="text-xs leading-none text-muted-foreground">
+                    <p className="text-xs leading-none text-muted-foreground flex items-center gap-1.5">
+                      <Mail className="size-3" />
                       {session.user.email}
                     </p>
                   </div>

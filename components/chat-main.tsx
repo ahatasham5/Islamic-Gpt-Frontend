@@ -4,7 +4,7 @@ import { StreamingAnswer } from "@/components/streaming-answer"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { confidenceLabels, type DraftConversation, type ChatTurn, type ServerState } from "@/lib/app-types"
-import { ArrowUp, BookOpen, Check, Copy, FileSearch, Menu, PanelRightClose, PanelRightOpen, ShieldQuestion, Sparkles, User, Settings, LogOut, ChevronDown, ThumbsUp, ThumbsDown } from "lucide-react"
+import { ArrowUp, BookOpen, Check, Copy, FileSearch, Mail, Menu, PanelRightClose, PanelRightOpen, ShieldQuestion, Sparkles, User, Settings, LogOut, ChevronDown, ThumbsUp, ThumbsDown } from "lucide-react"
 
 import type { AuthSession } from "@/lib/types"
 import {
@@ -163,26 +163,27 @@ export function ChatMain({
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuGroup>
                 <DropdownMenuLabel className="font-normal">
-                  <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">{session.user.name}</p>
-                    <p className="text-xs leading-none text-muted-foreground">
+                  <div className="flex flex-col space-y-0.5">
+                    <p className="text-sm font-semibold leading-none">{session.user.name}</p>
+                    <p className="text-xs leading-none text-muted-foreground pt-1 flex items-center gap-1.5">
+                      <Mail className="size-3" />
                       {session.user.email}
                     </p>
                   </div>
                 </DropdownMenuLabel>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="cursor-pointer" onClick={() => onOpenSettings("profile")}>
-                <User className="mr-2 size-4" />
+              <DropdownMenuItem className="cursor-pointer h-9" onClick={() => onOpenSettings("profile")}>
+                <User className="mr-2.5 size-4" />
                 <span>Profile</span>
               </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer" onClick={() => onOpenSettings("security")}>
-                <Settings className="mr-2 size-4" />
+              <DropdownMenuItem className="cursor-pointer h-9" onClick={() => onOpenSettings("security")}>
+                <Settings className="mr-2.5 size-4" />
                 <span>Settings</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive" onClick={onLogout}>
-                <LogOut className="mr-2 size-4" />
+              <DropdownMenuItem className="cursor-pointer h-9 text-destructive focus:bg-destructive/10 focus:text-destructive" onClick={onLogout}>
+                <LogOut className="mr-2.5 size-4" />
                 <span>Logout</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -275,7 +276,7 @@ export function ChatMain({
             </p>
           ) : null}
 
-          <div className="flex items-end gap-2 rounded-2xl border border-border bg-card p-2 shadow-sm transition focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/20">
+          <div className="flex items-end gap-2 rounded-xl border border-border bg-card p-2 shadow-sm transition focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/20">
             <textarea
               ref={textareaRef}
               dir="auto"
