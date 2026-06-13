@@ -1,7 +1,13 @@
 import { BrandMark } from "@/components/brand-mark"
 import { cn } from "@/lib/utils"
 import type { AuthSession, DraftConversation } from "@/lib/app-types"
-import { BookMarked, LogOut, MessageSquarePlus, MessagesSquare, UserPlus, X } from "lucide-react"
+import { BookMarked, LogOut, MessageSquarePlus, MessagesSquare, UserPlus, X, MoreVertical, Pin, Trash2 } from "lucide-react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 function getRoleLabel(role: AuthSession["user"]["role"]) {
   if (role === "super_admin") return "Super admin"
@@ -23,6 +29,8 @@ export function ChatSidebar({
   isCreateMuftiOpen,
   onLogout,
   onCloseMobile,
+  onPinConversation,
+  onDeleteConversation,
 }: {
   session: AuthSession
   conversations: DraftConversation[]
@@ -36,6 +44,8 @@ export function ChatSidebar({
   isCreateMuftiOpen: boolean
   onLogout: () => void
   onCloseMobile?: () => void
+  onPinConversation?: (id: string, isPinned: boolean) => void
+  onDeleteConversation?: (id: string) => void
 }) {
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden bg-sidebar text-sidebar-foreground">
@@ -80,92 +90,107 @@ export function ChatSidebar({
           আলোচনার ইতিহাস
         </p>
         <div className="space-y-1">
-          {conversations.map((conversation) => {
+          {conversations.filter(c => c.turns.length > 0 || (!c.id.startsWith("chat") && c.id !== "local-new")).map((conversation) => {
             const isActive = conversation.id === activeConversationId && viewMode === "chat"
             return (
-              <button
+              <div
                 key={conversation.id}
-                type="button"
-                onClick={() => onSelectConversation(conversation.id)}
                 className={cn(
-                  "group flex w-full items-start gap-2.5 rounded-lg px-2.5 py-2 text-left transition",
+                  "group relative flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 transition",
                   isActive
                     ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                    : "text-foreground hover:bg-sidebar-accent/60",
+                    : "text-foreground hover:bg-sidebar-accent/60"
                 )}
               >
-                <MessagesSquare
-                  className={cn(
-                    "mt-0.5 size-4 shrink-0",
-                    isActive ? "text-primary" : "text-muted-foreground",
-                  )}
-                />
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-medium">
-                    {conversation.title}
+                <button
+                  type="button"
+                  onClick={() => onSelectConversation(conversation.id)}
+                  className="flex flex-1 items-start gap-2.5 min-w-0 text-left"
+                >
+                  <MessagesSquare
+                    className={cn(
+                      "mt-0.5 size-4 shrink-0",
+                      isActive ? "text-primary" : "text-muted-foreground",
+                    )}
+                  />
+                  <span className="min-w-0 flex-1">
+                    <span className="flex items-center gap-2">
+                      <span className="block truncate text-sm font-medium">
+                        {conversation.title}
+                      </span>
+                      {conversation.isPinned && <Pin className="size-3 shrink-0 text-primary" fill="currentColor" />}
+                    </span>
+                    <span className="block text-xs text-muted-foreground">
+                      {conversation.turns.length > 0 || conversation.id === "local-new" || conversation.id.startsWith("chat")
+                        ? `${conversation.turns.length} টি বার্তা`
+                        : "তথ্য দেখুন"}
+                    </span>
                   </span>
-                  <span className="block text-xs text-muted-foreground">
-                    {conversation.turns.length} টি বার্তা
-                  </span>
-                </span>
-              </button>
+                </button>
+                {conversation.id !== "local-new" && onDeleteConversation && onPinConversation && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button className="flex size-7 items-center justify-center rounded-md text-muted-foreground opacity-0 transition hover:bg-sidebar-accent hover:text-foreground group-hover:opacity-100 data-[state=open]:opacity-100">
+                        <MoreVertical className="size-4" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => onPinConversation(conversation.id, !conversation.isPinned)}>
+                        <Pin className="mr-2 size-4" />
+                        {conversation.isPinned ? "Unpin" : "Pin"}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="text-destructive focus:bg-destructive/10 focus:text-destructive"
+                        onClick={() => onDeleteConversation(conversation.id)}
+                      >
+                        <Trash2 className="mr-2 size-4" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
+              </div>
             )
           })}
         </div>
       </div>
 
       {/* Bottom */}
-      <div className="shrink-0 space-y-2 border-t border-sidebar-border bg-sidebar p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
-        {canViewBooks ? (
-          <button
-            type="button"
-            onClick={onOpenBooks}
-            className={cn(
-              "flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium transition",
-              viewMode === "books"
-                ? "bg-accent text-accent-foreground ring-1 ring-primary/30"
-                : "text-foreground hover:bg-sidebar-accent",
-            )}
-          >
-            <BookMarked className="size-5 text-primary" />
-            {session.user.role === "super_admin" ? "কিতাব ম্যানেজ করুন" : "কিতাব সমূহ"}
-          </button>
-        ) : null}
+      {canViewBooks || session.user.role === "super_admin" ? (
+        <div className="shrink-0 space-y-2 border-t border-sidebar-border bg-sidebar p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
+          {canViewBooks ? (
+            <button
+              type="button"
+              onClick={onOpenBooks}
+              className={cn(
+                "flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium transition",
+                viewMode === "books"
+                  ? "bg-accent text-accent-foreground ring-1 ring-primary/30"
+                  : "text-foreground hover:bg-sidebar-accent",
+              )}
+            >
+              <BookMarked className="size-5 text-primary" />
+              {session.user.role === "super_admin" ? "কিতাব ম্যানেজ করুন" : "কিতাব সমূহ"}
+            </button>
+          ) : null}
 
-        {session.user.role === "super_admin" ? (
-          <button
-            type="button"
-            onClick={onOpenMuftiManagement}
-            className={cn(
-              "flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium transition",
-              isCreateMuftiOpen
-                ? "bg-accent text-accent-foreground ring-1 ring-primary/30"
-                : "text-foreground hover:bg-sidebar-accent",
-            )}
-          >
-            <UserPlus className="size-5 text-primary" />
-            Create Mufti
-          </button>
-        ) : null}
-
-        <div className="flex items-center gap-2.5 rounded-xl px-2 py-1.5">
-          <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-accent font-semibold text-accent-foreground">
-            {session.user.name.slice(0, 1).toUpperCase()}
-          </span>
-          <span className="min-w-0 flex-1 truncate text-sm font-medium">
-            {session.user.name}
-          </span>
-          <button
-            type="button"
-            onClick={onLogout}
-            className="inline-flex size-9 items-center justify-center rounded-lg text-muted-foreground transition hover:bg-sidebar-accent hover:text-destructive"
-            aria-label="লগআউট"
-            title="লগআউট"
-          >
-            <LogOut className="size-5" />
-          </button>
+          {session.user.role === "super_admin" ? (
+            <button
+              type="button"
+              onClick={onOpenMuftiManagement}
+              className={cn(
+                "flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium transition",
+                isCreateMuftiOpen
+                  ? "bg-accent text-accent-foreground ring-1 ring-primary/30"
+                  : "text-foreground hover:bg-sidebar-accent",
+              )}
+            >
+              <UserPlus className="size-5 text-primary" />
+              Create Mufti
+            </button>
+          ) : null}
         </div>
-      </div>
+      ) : null}
     </div>
   )
 }

@@ -152,6 +152,22 @@ export function useAuth() {
     saveSession(null)
   }, [])
 
+  const forgotPassword = useCallback(async (email: string) => {
+    setError("")
+    setIsSubmitting(true)
+
+    try {
+      const response = await usersApi.forgotPassword({ email })
+      return response
+    } catch (error) {
+      const message = getApiErrorMessage(error)
+      setError(message)
+      throw error
+    } finally {
+      setIsSubmitting(false)
+    }
+  }, [])
+
   return {
     session,
     isRestoring,
@@ -165,5 +181,6 @@ export function useAuth() {
     verifyOtp,
     resendOtp,
     logout,
+    forgotPassword,
   }
 }

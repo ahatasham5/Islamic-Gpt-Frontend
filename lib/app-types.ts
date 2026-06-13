@@ -9,6 +9,7 @@ export type ChatTurn = {
   question: string
   response: ChatResponse
   createdAt: string
+  feedbacks?: { id?: number; is_good: boolean | null; feedback_text: string | null; mufti_name?: string }[]
 }
 
 export type DraftConversation = {
@@ -16,6 +17,7 @@ export type DraftConversation = {
   title: string
   turns: ChatTurn[]
   createdAt: string
+  isPinned?: boolean
 }
 
 export const confidenceLabels: Record<ChatResponse["confidence"], string> = {

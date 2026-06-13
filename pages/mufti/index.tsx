@@ -20,4 +20,4 @@ function MuftiPage() {
   )
 }
 
-export default withAuth(MuftiPage, ["mufti", "super_admin"])
+export default withAuth(MuftiPage, ["mufti"])

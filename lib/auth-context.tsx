@@ -15,6 +15,7 @@ type AuthContextValue = {
   signup: (payload: SignupFormValues) => Promise<string>
   verifyOtp: (payload: OtpFormValues) => Promise<unknown>
   resendOtp: (email: string) => Promise<string>
+  forgotPassword: (email: string) => Promise<string>
   logout: () => void
 }
 

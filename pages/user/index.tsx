@@ -20,4 +20,4 @@ function UserPage() {
   )
 }
 
-export default withAuth(UserPage, ["user", "mufti", "super_admin"])
+export default withAuth(UserPage, ["user"])
