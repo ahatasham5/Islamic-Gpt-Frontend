@@ -157,7 +157,8 @@ export type Feedback = {
 export type ChatMessage = ChatResponse & {
   id?: number;
   message_id?: number;
-  query: string;
+  query?: string;
+  user_query?: string;
   created_at: string;
   feedbacks?: Feedback[];
   ai_response?: any;
