@@ -17,12 +17,12 @@ export function BrandMark({
       style={{ width: size, height: size }}
     >
       <Image
-        alt="As-Sunnah Foundation"
-        src="/AsSunnahFoundationLogo.png"
+        alt="IQA Logo"
+        src="/iqa-logo.png"
         width={size}
         height={size}
         priority
-        className="object-contain p-1"
+        className="h-full w-full object-cover"
       />
     </span>
   )

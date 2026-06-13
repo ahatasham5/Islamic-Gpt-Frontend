@@ -73,7 +73,7 @@ export function BookManager({
               Library
             </p>
             <h1 className="font-heading text-lg font-bold leading-tight md:text-xl">
-              {canManageBooks ? "কিতাব ম্যানেজ করুন" : "কিতাব সমূহ"}
+              {canManageBooks ? "কিতাব সমূহ" : "কিতাব সমূহ"}
             </h1>
           </div>
         </div>
