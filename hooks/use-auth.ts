@@ -28,8 +28,8 @@ export function useAuth() {
   const [session, setSession] = useState<AuthSession | null>(null)
   const [isRestoring, setIsRestoring] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isVerifying, setIsVerifying] = useState(false)
-  const [isResending, setIsResending] = useState(false)
+  // const [isVerifying, setIsVerifying] = useState(false)
+  // const [isResending, setIsResending] = useState(false)
   const [error, setError] = useState("")
 
   useEffect(() => {
@@ -98,52 +98,52 @@ export function useAuth() {
     }
   }, [])
 
-  const signup = useCallback(async (payload: UserCreate) => {
-    setError("")
-    setIsSubmitting(true)
+  // const signup = useCallback(async (payload: UserCreate) => {
+  //   setError("")
+  //   setIsSubmitting(true)
 
-    try {
-      const response = await authApi.signup(payload)
-      return response
-    } catch (error) {
-      const message = getApiErrorMessage(error)
-      setError(message)
-      throw error
-    } finally {
-      setIsSubmitting(false)
-    }
-  }, [])
+  //   try {
+  //     const response = await authApi.signup(payload)
+  //     return response
+  //   } catch (error) {
+  //     const message = getApiErrorMessage(error)
+  //     setError(message)
+  //     throw error
+  //   } finally {
+  //     setIsSubmitting(false)
+  //   }
+  // }, [])
 
-  const verifyOtp = useCallback(async (payload: VerifyOTP) => {
-    setError("")
-    setIsVerifying(true)
+  // const verifyOtp = useCallback(async (payload: VerifyOTP) => {
+  //   setError("")
+  //   setIsVerifying(true)
 
-    try {
-      return await authApi.verifyOtp(payload)
-    } catch (error) {
-      const message = getApiErrorMessage(error)
-      setError(message)
-      throw error
-    } finally {
-      setIsVerifying(false)
-    }
-  }, [])
+  //   try {
+  //     return await authApi.verifyOtp(payload)
+  //   } catch (error) {
+  //     const message = getApiErrorMessage(error)
+  //     setError(message)
+  //     throw error
+  //   } finally {
+  //     setIsVerifying(false)
+  //   }
+  // }, [])
 
-  const resendOtp = useCallback(async (email: string) => {
-    setError("")
-    setIsResending(true)
+  // const resendOtp = useCallback(async (email: string) => {
+  //   setError("")
+  //   setIsResending(true)
 
-    try {
-      const response = await authApi.resendOtp({ email })
-      return response
-    } catch (error) {
-      const message = getApiErrorMessage(error)
-      setError(message)
-      throw error
-    } finally {
-      setIsResending(false)
-    }
-  }, [])
+  //   try {
+  //     const response = await authApi.resendOtp({ email })
+  //     return response
+  //   } catch (error) {
+  //     const message = getApiErrorMessage(error)
+  //     setError(message)
+  //     throw error
+  //   } finally {
+  //     setIsResending(false)
+  //   }
+  // }, [])
 
   const logout = useCallback(() => {
     setSession(null)
@@ -186,14 +186,14 @@ export function useAuth() {
     session,
     isRestoring,
     isSubmitting,
-    isVerifying,
-    isResending,
+    // isVerifying,
+    // isResending,
     error,
     clearError: () => setError(""),
     login,
-    signup,
-    verifyOtp,
-    resendOtp,
+    // signup,
+    // verifyOtp,
+    // resendOtp,
     logout,
     forgotPassword,
     fetchSession,

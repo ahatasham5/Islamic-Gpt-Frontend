@@ -4,29 +4,29 @@ import type { AcceptInvite, MuftiCreate, ResendOTP, Token, UserCreate, UserLogin
 type EmptyResponse = Record<string, never>
 
 export const authApi = {
-  signup(payload: UserCreate) {
-    return apiRequest<string>({
-      method: "POST",
-      url: "/auth/signup",
-      data: payload,
-    })
-  },
+  // signup(payload: UserCreate) {
+  //   return apiRequest<string>({
+  //     method: "POST",
+  //     url: "/auth/signup",
+  //     data: payload,
+  //   })
+  // },
 
-  resendOtp(payload: ResendOTP) {
-    return apiRequest<string>({
-      method: "POST",
-      url: "/auth/resend-otp",
-      data: payload,
-    })
-  },
+  // resendOtp(payload: ResendOTP) {
+  //   return apiRequest<string>({
+  //     method: "POST",
+  //     url: "/auth/resend-otp",
+  //     data: payload,
+  //   })
+  // },
 
-  verifyOtp(payload: VerifyOTP) {
-    return apiRequest<UserResponse>({
-      method: "POST",
-      url: "/auth/verify-otp",
-      data: payload,
-    })
-  },
+  // verifyOtp(payload: VerifyOTP) {
+  //   return apiRequest<UserResponse>({
+  //     method: "POST",
+  //     url: "/auth/verify-otp",
+  //     data: payload,
+  //   })
+  // },
 
   login(payload: UserLogin) {
     return apiRequest<Token>({

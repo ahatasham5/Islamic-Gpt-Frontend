@@ -102,31 +102,31 @@ const translations = {
   },
 }
 
-type AuthMode = "signin" | "signup" | "otp" | "forgot-password"
+type AuthMode = "signin" | /*"signup" | "otp" |*/ "forgot-password"
 
 type LoginScreenProps = {
   apiError: string
   isSubmitting: boolean
-  isVerifying: boolean
-  isResending: boolean
+  // isVerifying: boolean
+  // isResending: boolean
   clearError: () => void
   onLogin: (payload: LoginFormValues) => Promise<AuthSession>
-  onSignup: (payload: SignupFormValues) => Promise<string>
-  onVerifyOtp: (payload: OtpFormValues) => Promise<unknown>
-  onResendOtp: (email: string) => Promise<string>
+  // onSignup: (payload: SignupFormValues) => Promise<string>
+  // onVerifyOtp: (payload: OtpFormValues) => Promise<unknown>
+  // onResendOtp: (email: string) => Promise<string>
   onForgotPassword: (email: string) => Promise<string>
 }
 
 export function LoginScreen({
   apiError,
   isSubmitting,
-  isVerifying,
-  isResending,
+  // isVerifying,
+  // isResending,
   clearError,
   onLogin,
-  onSignup,
-  onVerifyOtp,
-  onResendOtp,
+  // onSignup,
+  // onVerifyOtp,
+  // onResendOtp,
   onForgotPassword,
 }: LoginScreenProps) {
   const { language } = useLanguage()
@@ -152,22 +152,22 @@ export function LoginScreen({
 
   const [mode, setMode] = useState<AuthMode>("signin")
   const [signinForm, setSigninForm] = useState<LoginFormValues>({ email: "", password: "" })
-  const [signupForm, setSignupForm] = useState<SignupFormValues>({ name: "", email: "", password: "" })
-  const [otpForm, setOtpForm] = useState<OtpFormValues>({ email: "", otp: "" })
+  // const [signupForm, setSignupForm] = useState<SignupFormValues>({ name: "", email: "", password: "" })
+  // const [otpForm, setOtpForm] = useState<OtpFormValues>({ email: "", otp: "" })
   const [forgotPasswordForm, setForgotPasswordForm] = useState<ForgotPasswordFormValues>({ email: "" })
   const [formError, setFormError] = useState("")
   const [message, setMessage] = useState("")
-  const [countdown, setCountdown] = useState(0)
+  // const [countdown, setCountdown] = useState(0)
 
-  useEffect(() => {
-    if (countdown > 0) {
-      const timer = setTimeout(() => setCountdown(countdown - 1), 1000)
-      return () => clearTimeout(timer)
-    }
-  }, [countdown])
+  // useEffect(() => {
+  //   if (countdown > 0) {
+  //     const timer = setTimeout(() => setCountdown(countdown - 1), 1000)
+  //     return () => clearTimeout(timer)
+  //   }
+  // }, [countdown])
 
   const visibleError = formError || apiError
-  const isBusy = isSubmitting || isVerifying || isResending
+  const isBusy = isSubmitting // || isVerifying || isResending
 
   function resetFeedback() {
     setFormError("")
@@ -197,65 +197,65 @@ export function LoginScreen({
     }
   }
 
-  async function handleSignup(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    resetFeedback()
+  // async function handleSignup(event: FormEvent<HTMLFormElement>) {
+  //   event.preventDefault()
+  //   resetFeedback()
 
-    const result = signupSchema.safeParse(signupForm)
-    if (!result.success) {
-      setFormError(getValidationMessage(result.error))
-      return
-    }
+  //   const result = signupSchema.safeParse(signupForm)
+  //   if (!result.success) {
+  //     setFormError(getValidationMessage(result.error))
+  //     return
+  //   }
 
-    try {
-      const backendMsg = await onSignup(result.data)
-      setOtpForm({ email: result.data.email, otp: "" })
-      setMode("otp")
-      setMessage(typeof backendMsg === "string" ? backendMsg : "")
-      setCountdown(90)
-    } catch {
-      // The auth hook exposes backend errors through apiError.
-    }
-  }
+  //   try {
+  //     const backendMsg = await onSignup(result.data)
+  //     setOtpForm({ email: result.data.email, otp: "" })
+  //     setMode("otp")
+  //     setMessage(typeof backendMsg === "string" ? backendMsg : "")
+  //     setCountdown(90)
+  //   } catch {
+  //     // The auth hook exposes backend errors through apiError.
+  //   }
+  // }
 
-  async function handleVerifyOtp(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    resetFeedback()
+  // async function handleVerifyOtp(event: FormEvent<HTMLFormElement>) {
+  //   event.preventDefault()
+  //   resetFeedback()
 
-    const result = otpSchema.safeParse(otpForm)
-    if (!result.success) {
-      setFormError(getValidationMessage(result.error))
-      return
-    }
+  //   const result = otpSchema.safeParse(otpForm)
+  //   if (!result.success) {
+  //     setFormError(getValidationMessage(result.error))
+  //     return
+  //   }
 
-    try {
-      const verifyRes = await onVerifyOtp(result.data)
-      setSigninForm((current) => ({ ...current, email: result.data.email, password: "" }))
-      setOtpForm({ email: result.data.email, otp: "" })
-      setMode("signin")
-      setMessage((verifyRes as any)?.message || "")
-    } catch {
-      // The auth hook exposes backend errors through apiError.
-    }
-  }
+  //   try {
+  //     const verifyRes = await onVerifyOtp(result.data)
+  //     setSigninForm((current) => ({ ...current, email: result.data.email, password: "" }))
+  //     setOtpForm({ email: result.data.email, otp: "" })
+  //     setMode("signin")
+  //     setMessage((verifyRes as any)?.message || "")
+  //   } catch {
+  //     // The auth hook exposes backend errors through apiError.
+  //   }
+  // }
 
-  async function handleResendOtp() {
-    resetFeedback()
+  // async function handleResendOtp() {
+  //   resetFeedback()
 
-    const result = resendOtpSchema.safeParse({ email: otpForm.email })
-    if (!result.success) {
-      setFormError(getValidationMessage(result.error))
-      return
-    }
+  //   const result = resendOtpSchema.safeParse({ email: otpForm.email })
+  //   if (!result.success) {
+  //     setFormError(getValidationMessage(result.error))
+  //     return
+  //   }
 
-    try {
-      const backendMsg = await onResendOtp(result.data.email)
-      setMessage(typeof backendMsg === "string" ? backendMsg : "")
-      setCountdown(90)
-    } catch {
-      // The auth hook exposes backend errors through apiError.
-    }
-  }
+  //   try {
+  //     const backendMsg = await onResendOtp(result.data.email)
+  //     setMessage(typeof backendMsg === "string" ? backendMsg : "")
+  //     setCountdown(90)
+  //   } catch {
+  //     // The auth hook exposes backend errors through apiError.
+  //   }
+  // }
 
   async function handleForgotPassword(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -278,32 +278,34 @@ export function LoginScreen({
   }
 
   return (
-    <main className="relative min-h-dvh overflow-hidden bg-gradient-to-b from-[#E8F5E6] via-[#D4EED1] to-white flex items-center justify-center px-6 py-8">
+    <main className="relative min-h-dvh overflow-hidden bg-gradient-to-b from-[#E8F5E6] via-[#D4EED1] to-white flex items-center justify-center px-4 py-6 sm:px-6 sm:py-8">
 
       {/* Centered login form */}
-      <div className="w-full max-w-xl animate-in fade-in zoom-in-95 duration-500">
-        <div className="mb-8 flex flex-col items-center text-center">
-          <BrandMark size={64} />
-          <p className="mt-3 text-sm text-gray-700">{t.foundation}</p>
-          <h1 className="font-heading text-3xl font-bold text-gray-900">{t.appName}</h1>
+      <div className="w-full max-w-[95%] sm:max-w-md md:max-w-lg lg:max-w-xl animate-in fade-in zoom-in-95 duration-500">
+        <div className="mb-4 sm:mb-6 md:mb-8 flex flex-col items-center text-center">
+          <BrandMark size={48} className="sm:hidden" />
+          <BrandMark size={56} className="hidden sm:block md:hidden" />
+          <BrandMark size={64} className="hidden md:block" />
+          <p className="mt-2 sm:mt-3 text-xs sm:text-sm text-gray-700">{t.foundation}</p>
+          <h1 className="font-heading text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">{t.appName}</h1>
         </div>
 
-        <div className="rounded-2xl border-2 border-white/60 bg-white/30 p-20 shadow-xl backdrop-blur-2xl hover:shadow-2xl transition-shadow duration-300">
-          {mode === "otp" || mode === "forgot-password" ? (
+        <div className="rounded-xl sm:rounded-2xl border-2 border-white/60 bg-white/30 p-5 sm:p-8 md:p-12 lg:p-16 xl:p-20 shadow-xl backdrop-blur-2xl hover:shadow-2xl transition-shadow duration-300">
+          {/*mode === "otp" || */mode === "forgot-password" ? (
             <button
               type="button"
-              onClick={() => switchMode(mode === "otp" ? "signup" : "signin")}
-              className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-gray-700 transition hover:text-gray-900 cursor-pointer"
+              onClick={() => switchMode(/*mode === "otp" ? "signup" :*/ "signin")}
+              className="mb-3 sm:mb-4 inline-flex items-center gap-1.5 text-xs sm:text-sm font-medium text-gray-700 transition hover:text-gray-900 cursor-pointer"
             >
-              <ArrowLeft className="size-4" />
-              {mode === "otp" ? t.backToSignup : t.backToSignin}
+              <ArrowLeft className="size-3.5 sm:size-4" />
+              {/*mode === "otp" ? t.backToSignup :*/ t.backToSignin}
             </button>
-          ) : (
-            <div className="mb-5 grid grid-cols-2 rounded-xl border border-white/30 bg-white/15 p-1 backdrop-blur-sm">
+          ) : null /*: (
+            <div className="mb-4 sm:mb-5 grid grid-cols-2 rounded-lg sm:rounded-xl border border-white/30 bg-white/15 p-0.5 sm:p-1 backdrop-blur-sm">
               <button
                 type="button"
                 onClick={() => switchMode("signin")}
-                className={`rounded-lg px-3 py-2 text-sm font-semibold cursor-pointer ${mode === "signin" ? "bg-white/30 text-gray-900 shadow-sm backdrop-blur-sm border-2 border-[#64C859]" : "text-gray-700 hover:text-gray-900"
+                className={`rounded-md sm:rounded-lg px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold cursor-pointer ${mode === "signin" ? "bg-white/30 text-gray-900 shadow-sm backdrop-blur-sm border-2 border-[#64C859]" : "text-gray-700 hover:text-gray-900"
                   }`}
               >
                 {t.signIn}
@@ -311,42 +313,42 @@ export function LoginScreen({
               <button
                 type="button"
                 onClick={() => switchMode("signup")}
-                className={`rounded-lg px-3 py-2 text-sm font-semibold cursor-pointer ${mode === "signup" ? "bg-white/30 text-gray-900 shadow-sm backdrop-blur-sm border-2 border-[#64C859]" : "text-gray-700 hover:text-gray-900"
+                className={`rounded-md sm:rounded-lg px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold cursor-pointer ${mode === "signup" ? "bg-white/30 text-gray-900 shadow-sm backdrop-blur-sm border-2 border-[#64C859]" : "text-gray-700 hover:text-gray-900"
                   }`}
               >
                 {t.signUp}
               </button>
             </div>
-          )}
+          )*/}
 
-          <h2 className="font-heading text-xl font-bold text-gray-800 text-center">
-            {mode === "signin" ? t.greeting : mode === "signup" ? t.createAccount : mode === "forgot-password" ? t.forgotPassword : t.verifyOtp}
+          <h2 className="font-heading text-lg sm:text-xl font-bold text-gray-800 text-center">
+            {mode === "signin" ? t.greeting : /*mode === "signup" ? t.createAccount :*/ mode === "forgot-password" ? t.forgotPassword : /*t.verifyOtp*/ t.greeting}
           </h2>
-          <p className="mt-1 text-sm text-gray-700 text-center">
+          <p className="mt-1 text-xs sm:text-sm text-gray-700 text-center px-2">
             {mode === "signin"
               ? t.useEmailPassword
-              : mode === "signup"
+              : /*mode === "signup"
                 ? t.enterDetails
-                : mode === "forgot-password"
+                :*/ mode === "forgot-password"
                   ? t.forgotPasswordDesc
-                  : `${t.otpSent} ${otpForm.email || language === "bn" ? "আপনার ইমেইলে" : "your email"}${t.otpSentEnd ? ` ${t.otpSentEnd}` : "."}`}
+                  : /*`${t.otpSent} ${otpForm.email || language === "bn" ? "আপনার ইমেইলে" : "your email"}${t.otpSentEnd ? ` ${t.otpSentEnd}` : "."}`*/ t.useEmailPassword}
           </p>
 
           {visibleError ? (
-            <p className="mt-4 rounded-xl border border-destructive/25 bg-destructive/10 px-3.5 py-2.5 text-sm text-destructive">
+            <p className="mt-3 sm:mt-4 rounded-lg sm:rounded-xl border border-destructive/25 bg-destructive/10 px-2.5 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm text-destructive">
               {visibleError}
             </p>
           ) : null}
 
           {message ? (
-            <p className="mt-4 rounded-xl border border-primary/20 bg-accent px-3.5 py-2.5 text-sm text-foreground">
+            <p className="mt-3 sm:mt-4 rounded-lg sm:rounded-xl border border-primary/20 bg-accent px-2.5 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm text-foreground">
               {message}
             </p>
           ) : null}
 
-          <div className="relative overflow-hidden px-4">
+          <div className="relative overflow-hidden px-1 sm:px-2 md:px-4">
             {mode === "signin" ? (
-              <form key="signin" className="mt-6 space-y-4 animate-in fade-in duration-700 [animation-timing-function:cubic-bezier(0.4,0,0.2,1)]" style={{ animation: 'ripple 0.7s ease-out' }} onSubmit={handleSignin}>
+              <form key="signin" className="mt-4 sm:mt-6 space-y-3 sm:space-y-4 animate-in fade-in duration-700 [animation-timing-function:cubic-bezier(0.4,0,0.2,1)]" style={{ animation: 'ripple 0.7s ease-out' }} onSubmit={handleSignin}>
                 <TextField
                   id="signin-email"
                   label={t.email}
@@ -374,13 +376,13 @@ export function LoginScreen({
                   <button
                     type="button"
                     onClick={() => switchMode("forgot-password")}
-                    className="text-sm font-medium text-[#64C859] hover:underline"
+                    className="text-xs sm:text-sm font-medium text-[#64C859] hover:underline"
                   >
                     {t.forgotPassword}
                   </button>
                 </div>
 
-                <Button type="submit" size="lg" disabled={isSubmitting} className="h-11 w-full rounded-xl text-base bg-[#64C859] hover:bg-[#64C859]/90 cursor-pointer">
+                <Button type="submit" size="lg" disabled={isSubmitting} className="h-10 sm:h-11 w-full rounded-lg sm:rounded-xl text-sm sm:text-base bg-[#64C859] hover:bg-[#64C859]/90 cursor-pointer">
                   <span className="inline-flex size-4 items-center justify-center">
                     {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : null}
                   </span>
@@ -389,8 +391,8 @@ export function LoginScreen({
               </form>
             ) : null}
 
-            {mode === "signup" ? (
-              <form key="signup" className="mt-6 space-y-4 animate-in fade-in duration-700" style={{ animation: 'ripple 0.7s ease-out' }} onSubmit={handleSignup}>
+            {/*mode === "signup" ? (
+              <form key="signup" className="mt-4 sm:mt-6 space-y-3 sm:space-y-4 animate-in fade-in duration-700" style={{ animation: 'ripple 0.7s ease-out' }} onSubmit={handleSignup}>
                 <TextField
                   id="signup-name"
                   label={t.name}
@@ -425,17 +427,17 @@ export function LoginScreen({
                   autoComplete="new-password"
                 />
 
-                <Button type="submit" size="lg" disabled={isSubmitting} className="h-11 w-full rounded-xl text-base bg-[#64C859] hover:bg-[#64C859]/90 cursor-pointer">
+                <Button type="submit" size="lg" disabled={isSubmitting} className="h-10 sm:h-11 w-full rounded-lg sm:rounded-xl text-sm sm:text-base bg-[#64C859] hover:bg-[#64C859]/90 cursor-pointer">
                   <span className="inline-flex size-4 items-center justify-center">
                     {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : null}
                   </span>
                   {t.sendOtp}
                 </Button>
               </form>
-            ) : null}
+            ) : null*/}
 
-            {mode === "otp" ? (
-              <form key="otp" className="mt-6 space-y-4 animate-in fade-in duration-700" style={{ animation: 'ripple 0.7s ease-out' }} onSubmit={handleVerifyOtp}>
+            {/*mode === "otp" ? (
+              <form key="otp" className="mt-4 sm:mt-6 space-y-3 sm:space-y-4 animate-in fade-in duration-700" style={{ animation: 'ripple 0.7s ease-out' }} onSubmit={handleVerifyOtp}>
                 <TextField
                   id="otp-email"
                   label={t.email}
@@ -461,7 +463,7 @@ export function LoginScreen({
                   maxLength={6}
                 />
 
-                <Button type="submit" size="lg" disabled={isVerifying} className="h-11 w-full rounded-xl text-base bg-[#64C859] hover:bg-[#64C859]/90 cursor-pointer">
+                <Button type="submit" size="lg" disabled={isVerifying} className="h-10 sm:h-11 w-full rounded-lg sm:rounded-xl text-sm sm:text-base bg-[#64C859] hover:bg-[#64C859]/90 cursor-pointer">
                   <span className="inline-flex size-4 items-center justify-center">
                     {isVerifying ? <Loader2 className="size-4 animate-spin" /> : null}
                   </span>
@@ -472,7 +474,7 @@ export function LoginScreen({
                   variant="ghost"
                   disabled={isResending || countdown > 0}
                   onClick={handleResendOtp}
-                  className="h-10 w-full rounded-xl cursor-pointer"
+                  className="h-9 sm:h-10 w-full rounded-lg sm:rounded-xl cursor-pointer text-xs sm:text-sm"
                 >
                   <span className="inline-flex size-4 items-center justify-center">
                     {isResending ? <Loader2 className="size-4 animate-spin" /> : null}
@@ -480,10 +482,10 @@ export function LoginScreen({
                   {countdown > 0 ? `${t.resendOtp} (${countdown}s)` : t.resendOtp}
                 </Button>
               </form>
-            ) : null}
+            ) : null*/}
 
             {mode === "forgot-password" ? (
-              <form key="forgot-password" className="mt-6 space-y-4 animate-in fade-in duration-700" style={{ animation: 'ripple 0.7s ease-out' }} onSubmit={handleForgotPassword}>
+              <form key="forgot-password" className="mt-4 sm:mt-6 space-y-3 sm:space-y-4 animate-in fade-in duration-700" style={{ animation: 'ripple 0.7s ease-out' }} onSubmit={handleForgotPassword}>
                 <TextField
                   id="forgot-email"
                   label={t.email}
@@ -496,7 +498,7 @@ export function LoginScreen({
                   autoComplete="email"
                 />
 
-                <Button type="submit" size="lg" disabled={isSubmitting} className="h-11 w-full rounded-xl text-base bg-[#64C859] hover:bg-[#64C859]/90 cursor-pointer">
+                <Button type="submit" size="lg" disabled={isSubmitting} className="h-10 sm:h-11 w-full rounded-lg sm:rounded-xl text-sm sm:text-base bg-[#64C859] hover:bg-[#64C859]/90 cursor-pointer">
                   <span className="inline-flex size-4 items-center justify-center">
                     {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : null}
                   </span>
@@ -509,8 +511,8 @@ export function LoginScreen({
       </div>
 
       {/* Copyright footer - bottom center */}
-      <div className="absolute bottom-0 left-0 right-0 pb-4 text-center">
-        <p className="text-xs font-bold text-gray-500">
+      <div className="absolute bottom-0 left-0 right-0 pb-3 sm:pb-4 text-center px-4">
+        <p className="text-[10px] sm:text-xs font-bold text-gray-500">
           {t.copyright.replace("{year}", new Date().getFullYear().toString())}
         </p>
       </div>
@@ -548,12 +550,12 @@ function TextField({
   const resolvedType = isPassword ? (showPassword ? "text" : "password") : type
 
   return (
-    <div className="space-y-1.5">
-      <label htmlFor={id} className="text-sm font-medium text-gray-800">
+    <div className="space-y-1 sm:space-y-1.5">
+      <label htmlFor={id} className="text-xs sm:text-sm font-medium text-gray-800">
         {label}
       </label>
       <div className="relative">
-        <Icon className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-gray-600" />
+        <Icon className="pointer-events-none absolute left-2.5 sm:left-3.5 top-1/2 size-3.5 sm:size-4 -translate-y-1/2 text-gray-600" />
         <input
           id={id}
           type={resolvedType}
@@ -564,17 +566,17 @@ function TextField({
           inputMode={inputMode}
           maxLength={maxLength}
           placeholder={placeholder}
-          className="h-11 w-full rounded-xl border-2 border-[#64C859]/30 bg-white/20 pl-11 pr-10 text-sm text-gray-900 placeholder:text-gray-600 outline-none transition-all duration-300 backdrop-blur-sm disabled:cursor-not-allowed disabled:opacity-60 focus:border-[#64C859] focus:bg-white/30 focus:ring-2 focus:ring-[#64C859]/30 overflow-hidden text-ellipsis"
+          className="h-10 sm:h-11 w-full rounded-lg sm:rounded-xl border-2 border-[#64C859]/30 bg-white/20 pl-9 sm:pl-11 pr-9 sm:pr-10 text-xs sm:text-sm text-gray-900 placeholder:text-gray-600 outline-none transition-all duration-300 backdrop-blur-sm disabled:cursor-not-allowed disabled:opacity-60 focus:border-[#64C859] focus:bg-white/30 focus:ring-2 focus:ring-[#64C859]/30 overflow-hidden text-ellipsis"
         />
         {isPassword ? (
           <button
             type="button"
             onClick={() => setShowPassword((prev) => !prev)}
-            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-600 transition hover:text-gray-900"
+            className="absolute right-2.5 sm:right-3.5 top-1/2 -translate-y-1/2 text-gray-600 transition hover:text-gray-900"
             aria-label={showPassword ? "Hide password" : "Show password"}
             tabIndex={-1}
           >
-            {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+            {showPassword ? <EyeOff className="size-3.5 sm:size-4" /> : <Eye className="size-3.5 sm:size-4" />}
           </button>
         ) : null}
       </div>
