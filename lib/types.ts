@@ -17,8 +17,16 @@ export type MuftiCreate = {
 };
 
 export type AcceptInvite = {
-  email: string;
+  token: string;
   password: string;
+};
+
+export type AcceptInviteResponse = {
+  msg: string;
+};
+
+export type ResetPasswordResponse = {
+  msg: string;
 };
 
 export type UserLogin = {
