@@ -38,7 +38,7 @@ export const resetPasswordSchema = z.object({
 })
 
 export const acceptInviteSchema = z.object({
-  email: z.string().min(1, "Email is required."),
+  token: z.string().min(1, "Invitation token is required."),
   password: z.string().min(1, "Password is required."),
   confirmPassword: z.string().min(1, "Please confirm your password."),
 }).refine((data) => data.password === data.confirmPassword, {
