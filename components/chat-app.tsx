@@ -449,8 +449,8 @@ export function ChatApp() {
   return (
     <div
       className={cn(
-        "grid h-dvh min-h-0 grid-cols-1 overflow-hidden lg:grid-cols-[300px_minmax(0,1fr)]",
-        viewMode === "chat" && desktopSourcesOpen && "xl:grid-cols-[300px_minmax(0,1fr)_340px]"
+        "grid h-dvh min-h-0 grid-cols-1 overflow-hidden lg:grid-cols-[280px_minmax(0,1fr)] xl:grid-cols-[300px_minmax(0,1fr)]",
+        viewMode === "chat" && desktopSourcesOpen && "2xl:grid-cols-[300px_minmax(0,1fr)_340px]"
       )}
     >
       <aside className="hidden min-h-0 overflow-hidden border-r border-sidebar-border lg:block">
@@ -458,7 +458,7 @@ export function ChatApp() {
       </aside>
 
       <Sheet open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
-        <SheetContent side="left" className="h-dvh w-[300px] overflow-hidden p-0">
+        <SheetContent side="left" className="h-dvh w-[280px] sm:w-[300px] overflow-hidden p-0">
           {sidebar(() => setMobileNavOpen(false))}
         </SheetContent>
       </Sheet>
@@ -523,7 +523,7 @@ export function ChatApp() {
           onLogout={handleLogout}
           onSelectTurn={(id) => {
             setSelectedTurnId(id)
-            if (window.innerWidth >= 1280) {
+            if (window.innerWidth >= 1536) {
               setDesktopSourcesOpen(true)
             } else {
               setMobileSourcesOpen(true)
@@ -544,12 +544,12 @@ export function ChatApp() {
       )}
 
       {viewMode === "chat" && desktopSourcesOpen ? (
-        <aside className="hidden min-h-0 overflow-hidden border-l border-border xl:block">
+        <aside className="hidden min-h-0 overflow-hidden border-l border-border 2xl:block">
           <SourcesPanel selectedTurn={selectedTurn} onViewThinking={setThinkingSource} onClose={() => setDesktopSourcesOpen(false)} />
         </aside>
       ) : null}
       <Sheet open={mobileSourcesOpen} onOpenChange={setMobileSourcesOpen}>
-        <SheetContent side="right" className="h-dvh w-[340px] max-w-[88vw] overflow-hidden p-0">
+        <SheetContent side="right" className="h-dvh w-[300px] sm:w-[340px] max-w-[88vw] overflow-hidden p-0">
           <SourcesPanel selectedTurn={selectedTurn} onViewThinking={setThinkingSource} />
         </SheetContent>
       </Sheet>

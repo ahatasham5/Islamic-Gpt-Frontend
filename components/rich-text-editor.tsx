@@ -41,32 +41,34 @@ export function RichTextEditor({
 
   return (
     <div className="flex flex-col border border-border rounded-lg overflow-hidden bg-background focus-within:ring-1 focus-within:ring-primary/50 transition-all">
-      <div className="flex flex-wrap items-center gap-1 border-b border-border bg-muted/40 p-1">
-        <Button type="button" variant="ghost" size="icon" className="size-8 text-muted-foreground hover:text-foreground" onClick={() => exec('bold')} title="Bold">
-          <Bold className="size-4" />
+      {/* Toolbar */}
+      <div className="flex flex-wrap items-center gap-0.5 sm:gap-1 border-b border-border bg-muted/40 p-1 sm:p-1.5">
+        <Button type="button" variant="ghost" size="icon" className="size-7 sm:size-8 text-muted-foreground hover:text-foreground" onClick={() => exec('bold')} title="Bold">
+          <Bold className="size-3.5 sm:size-4" />
         </Button>
-        <Button type="button" variant="ghost" size="icon" className="size-8 text-muted-foreground hover:text-foreground" onClick={() => exec('italic')} title="Italic">
-          <Italic className="size-4" />
+        <Button type="button" variant="ghost" size="icon" className="size-7 sm:size-8 text-muted-foreground hover:text-foreground" onClick={() => exec('italic')} title="Italic">
+          <Italic className="size-3.5 sm:size-4" />
         </Button>
-        <Button type="button" variant="ghost" size="icon" className="size-8 text-muted-foreground hover:text-foreground" onClick={() => exec('underline')} title="Underline">
-          <Underline className="size-4" />
+        <Button type="button" variant="ghost" size="icon" className="size-7 sm:size-8 text-muted-foreground hover:text-foreground" onClick={() => exec('underline')} title="Underline">
+          <Underline className="size-3.5 sm:size-4" />
         </Button>
-        <div className="w-px h-4 bg-border mx-1" />
-        <Button type="button" variant="ghost" size="icon" className="size-8 text-muted-foreground hover:text-foreground" onClick={() => exec('insertUnorderedList')} title="Bullet List">
-          <List className="size-4" />
+        <div className="w-px h-3.5 sm:h-4 bg-border mx-0.5 sm:mx-1" />
+        <Button type="button" variant="ghost" size="icon" className="size-7 sm:size-8 text-muted-foreground hover:text-foreground" onClick={() => exec('insertUnorderedList')} title="Bullet List">
+          <List className="size-3.5 sm:size-4" />
         </Button>
-        <Button type="button" variant="ghost" size="icon" className="size-8 text-muted-foreground hover:text-foreground" onClick={() => exec('insertOrderedList')} title="Numbered List">
-          <ListOrdered className="size-4" />
+        <Button type="button" variant="ghost" size="icon" className="size-7 sm:size-8 text-muted-foreground hover:text-foreground" onClick={() => exec('insertOrderedList')} title="Numbered List">
+          <ListOrdered className="size-3.5 sm:size-4" />
         </Button>
-        <div className="w-px h-4 bg-border mx-1" />
-        <Button type="button" variant="ghost" size="icon" className="size-8 text-muted-foreground hover:text-foreground" onClick={() => exec('hiliteColor', '#fef08a')} title="Highlight">
-          <Highlighter className="size-4" />
+        <div className="w-px h-3.5 sm:h-4 bg-border mx-0.5 sm:mx-1" />
+        <Button type="button" variant="ghost" size="icon" className="size-7 sm:size-8 text-muted-foreground hover:text-foreground" onClick={() => exec('hiliteColor', '#fef08a')} title="Highlight">
+          <Highlighter className="size-3.5 sm:size-4" />
         </Button>
       </div>
+      {/* Editor area */}
       <div
         ref={editorRef}
         className={cn(
-          "p-4 h-[350px] outline-none overflow-y-auto overflow-x-hidden text-sm w-full break-all whitespace-pre-wrap",
+          "p-3 sm:p-4 h-[240px] sm:h-[300px] lg:h-[350px] outline-none overflow-y-auto overflow-x-hidden text-xs sm:text-sm w-full break-all whitespace-pre-wrap",
           textDir === "rtl" ? "text-right" : "text-left"
         )}
         contentEditable

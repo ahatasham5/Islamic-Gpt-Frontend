@@ -61,15 +61,17 @@ export function ChatSidebar({
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden bg-sidebar text-sidebar-foreground">
       {/* Brand */}
-<div className="flex h-[72px] shrink-0 items-center justify-between gap-3 border-b border-border px-4">
+<div className="flex h-14 sm:h-16 md:h-[72px] shrink-0 items-center justify-between gap-2 sm:gap-3 border-b border-border px-3 sm:px-4">
         <button
           onClick={onNewChat}
-          className="flex min-w-0 items-center gap-2.5 text-left transition hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-md"
+          className="flex min-w-0 items-center gap-2 sm:gap-2.5 text-left transition hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-md"
         >
-          <BrandMark size={40} />
+          <BrandMark size={32} className="sm:hidden" />
+          <BrandMark size={36} className="hidden sm:block md:hidden" />
+          <BrandMark size={40} className="hidden md:block" />
           <div className="min-w-0 leading-tight">
-            <p className="truncate font-heading text-sm font-bold">ইসলামী প্রশ্নোত্তর</p>
-            <p className="truncate text-xs text-muted-foreground">
+            <p className="truncate font-heading text-xs sm:text-sm font-bold">ইসলামী প্রশ্নোত্তর</p>
+            <p className="truncate text-[10px] sm:text-xs text-muted-foreground">
               {getRoleLabel(session.user.role)}
             </p>
           </div>
@@ -78,39 +80,39 @@ export function ChatSidebar({
           <button
             type="button"
             onClick={onCloseMobile}
-            className="inline-flex size-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-sidebar-accent lg:hidden"
+            className="inline-flex size-7 sm:size-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-sidebar-accent lg:hidden"
             aria-label="Close menu"
           >
-            <X className="size-5" />
+            <X className="size-4 sm:size-5" />
           </button>
         ) : null}
       </div>
 
       {/* New chat */}
-      <div className="shrink-0 px-3 pt-3">
+      <div className="shrink-0 px-2.5 sm:px-3 pt-2.5 sm:pt-3">
         <button
           type="button"
           onClick={onNewChat}
-          className="flex w-full items-center gap-2 rounded-xl bg-primary px-3.5 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:opacity-90"
+          className="flex w-full items-center gap-1.5 sm:gap-2 rounded-lg sm:rounded-xl bg-primary px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold text-primary-foreground shadow-sm transition hover:opacity-90"
         >
-          <MessageSquarePlus className="size-5" />
+          <MessageSquarePlus className="size-4 sm:size-5" />
           নতুন আলোচনা
         </button>
       </div>
 
       {/* History */}
-      <div className="mt-4 min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 pb-2">
-        <p className="px-1 pb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+      <div className="mt-3 sm:mt-4 min-h-0 flex-1 overflow-y-auto overscroll-contain px-2.5 sm:px-3 pb-2">
+        <p className="px-1 pb-1.5 sm:pb-2 text-[10px] sm:text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           আলোচনার ইতিহাস
         </p>
-        <div className="space-y-1">
+        <div className="space-y-0.5 sm:space-y-1">
           {conversations.filter(c => c.turns.length > 0 || (!c.id.startsWith("chat") && c.id !== "local-new")).map((conversation) => {
             const isActive = conversation.id === activeConversationId && viewMode === "chat"
             return (
               <div
                 key={conversation.id}
                 className={cn(
-                  "group relative flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 transition",
+                  "group relative flex w-full items-center gap-2 sm:gap-2.5 rounded-md sm:rounded-lg px-2 sm:px-2.5 py-1.5 sm:py-2 transition",
                   isActive
                     ? "bg-sidebar-accent text-sidebar-accent-foreground"
                     : "text-foreground hover:bg-sidebar-accent/60"
@@ -119,22 +121,22 @@ export function ChatSidebar({
                 <button
                   type="button"
                   onClick={() => onSelectConversation(conversation.id)}
-                  className="flex flex-1 items-start gap-2.5 min-w-0 text-left"
+                  className="flex flex-1 items-start gap-2 sm:gap-2.5 min-w-0 text-left"
                 >
                   <MessagesSquare
                     className={cn(
-                      "mt-0.5 size-4 shrink-0",
+                      "mt-0.5 size-3.5 sm:size-4 shrink-0",
                       isActive ? "text-primary" : "text-muted-foreground",
                     )}
                   />
                   <span className="min-w-0 flex-1">
-                    <span className="flex items-center gap-2">
-                      <span className="block truncate text-sm font-medium">
+                    <span className="flex items-center gap-1.5 sm:gap-2">
+                      <span className="block truncate text-xs sm:text-sm font-medium">
                         {conversation.title}
                       </span>
-                      {conversation.isPinned && <Pin className="size-3 shrink-0 text-primary" fill="currentColor" />}
+                      {conversation.isPinned && <Pin className="size-2.5 sm:size-3 shrink-0 text-primary" fill="currentColor" />}
                     </span>
-                    <span className="block text-xs text-muted-foreground">
+                    <span className="block text-[10px] sm:text-xs text-muted-foreground">
                       {conversation.turns.length > 0 || conversation.id === "local-new" || conversation.id.startsWith("chat")
                         ? `${conversation.turns.length} টি বার্তা`
                         : "তথ্য দেখুন"}
@@ -144,9 +146,9 @@ export function ChatSidebar({
                 {conversation.id !== "local-new" && onDeleteConversation && onPinConversation && (
                   <DropdownMenu>
                     <DropdownMenuTrigger
-                      className="flex size-7 items-center justify-center rounded-md text-muted-foreground opacity-0 transition hover:bg-sidebar-accent hover:text-foreground group-hover:opacity-100 data-[state=open]:opacity-100 cursor-pointer"
+                      className="flex size-6 sm:size-7 items-center justify-center rounded-md text-muted-foreground opacity-0 transition hover:bg-sidebar-accent hover:text-foreground group-hover:opacity-100 data-[state=open]:opacity-100 cursor-pointer"
                     >
-                      <MoreVertical className="size-4" />
+                      <MoreVertical className="size-3.5 sm:size-4" />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem onClick={() => onPinConversation(conversation.id, !conversation.isPinned)}>
@@ -171,7 +173,7 @@ export function ChatSidebar({
             <button
               onClick={onLoadMoreSessions}
               disabled={isLoadingMoreSessions}
-              className="mt-4 w-full rounded-md py-2 text-xs font-medium text-muted-foreground transition hover:bg-sidebar-accent hover:text-foreground disabled:opacity-50"
+              className="mt-3 sm:mt-4 w-full rounded-md py-1.5 sm:py-2 text-[10px] sm:text-xs font-medium text-muted-foreground transition hover:bg-sidebar-accent hover:text-foreground disabled:opacity-50"
             >
               {isLoadingMoreSessions ? "Loading..." : "Load More"}
             </button>
@@ -181,19 +183,19 @@ export function ChatSidebar({
 
       {/* Bottom */}
       {canViewBooks || session.user.role === "super_admin" ? (
-        <div className="shrink-0 space-y-2 border-t border-sidebar-border bg-sidebar p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
+        <div className="shrink-0 space-y-1.5 sm:space-y-2 border-t border-sidebar-border bg-sidebar p-2.5 sm:p-3 pb-[calc(0.625rem+env(safe-area-inset-bottom))] sm:pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
           {session.user.role === "super_admin" ? (
             <button
               type="button"
               onClick={onOpenMuftiManagement}
               className={cn(
-                "flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium transition",
+                "flex w-full items-center gap-2 sm:gap-2.5 rounded-lg sm:rounded-xl px-2.5 sm:px-3 py-2 sm:py-2.5 text-xs sm:text-sm font-medium transition",
                 isCreateMuftiOpen
                   ? "bg-accent text-accent-foreground ring-1 ring-primary/30"
                   : "text-foreground hover:bg-sidebar-accent",
               )}
             >
-              <UserPlus className="size-5 text-primary" />
+              <UserPlus className="size-4 sm:size-5 text-primary" />
              মুফতি আমন্ত্রণ
             </button>
           ) : null}
@@ -203,13 +205,13 @@ export function ChatSidebar({
               type="button"
               onClick={onOpenAdminUsers}
               className={cn(
-                "flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium transition",
+                "flex w-full items-center gap-2 sm:gap-2.5 rounded-lg sm:rounded-xl px-2.5 sm:px-3 py-2 sm:py-2.5 text-xs sm:text-sm font-medium transition",
                 viewMode === "admin_users"
                   ? "bg-accent text-accent-foreground ring-1 ring-primary/30"
                   : "text-foreground hover:bg-sidebar-accent",
               )}
             >
-              <Users className="size-5 text-primary" />
+              <Users className="size-4 sm:size-5 text-primary" />
               ব্যবহারকারী
             </button>
           ) : null}
@@ -219,13 +221,13 @@ export function ChatSidebar({
               type="button"
               onClick={onOpenAdminFeedbacks}
               className={cn(
-                "flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium transition",
+                "flex w-full items-center gap-2 sm:gap-2.5 rounded-lg sm:rounded-xl px-2.5 sm:px-3 py-2 sm:py-2.5 text-xs sm:text-sm font-medium transition",
                 viewMode === "admin_feedbacks"
                   ? "bg-accent text-accent-foreground ring-1 ring-primary/30"
                   : "text-foreground hover:bg-sidebar-accent",
               )}
             >
-              <MessageSquare className="size-5 text-primary" />
+              <MessageSquare className="size-4 sm:size-5 text-primary" />
               মতামত সমূহ
             </button>
           ) : null}
@@ -235,19 +237,19 @@ export function ChatSidebar({
               type="button"
               onClick={onOpenBooks}
               className={cn(
-                "flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium transition",
+                "flex w-full items-center gap-2 sm:gap-2.5 rounded-lg sm:rounded-xl px-2.5 sm:px-3 py-2 sm:py-2.5 text-xs sm:text-sm font-medium transition",
                 viewMode === "books"
                   ? "bg-accent text-accent-foreground ring-1 ring-primary/30"
                   : "text-foreground hover:bg-sidebar-accent",
               )}
             >
-              <BookMarked className="size-5 text-primary" />
+              <BookMarked className="size-4 sm:size-5 text-primary" />
               {session.user.role === "super_admin" ? "কিতাব সমূহ" : "কিতাব সমূহ"}
             </button>
           ) : null}
 
           {session.user.role === "super_admin" ? (
-            <div className="h-1.5 w-full bg-green-200/50 rounded-full mt-3 dark:bg-green-900/30" />
+            <div className="h-1 sm:h-1.5 w-full bg-green-200/50 rounded-full mt-2 sm:mt-3 dark:bg-green-900/30" />
           ) : null}
         </div>
       ) : null}

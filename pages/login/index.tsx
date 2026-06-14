@@ -14,7 +14,7 @@ const roleHome: Record<UserRole, string> = {
 }
 
 export default function LoginPage() {
-  const { session, isRestoring, isSubmitting, isVerifying, isResending, error, clearError, login, signup, verifyOtp, resendOtp, forgotPassword } =
+  const { session, isRestoring, isSubmitting, /*isVerifying, isResending,*/ error, clearError, login, /*signup, verifyOtp, resendOtp,*/ forgotPassword } =
     useAuthContext()
   const router = useRouter()
 
@@ -47,8 +47,8 @@ export default function LoginPage() {
       <LoginScreen
         apiError={error}
         isSubmitting={isSubmitting}
-        isVerifying={isVerifying}
-        isResending={isResending}
+        // isVerifying={isVerifying}
+        // isResending={isResending}
         clearError={clearError}
         onLogin={async (payload) => {
           const session = await login(payload)
@@ -56,9 +56,9 @@ export default function LoginPage() {
           router.replace(roleHome[session.user.role])
           return session
         }}
-        onSignup={signup}
-        onVerifyOtp={verifyOtp}
-        onResendOtp={resendOtp}
+        // onSignup={signup}
+        // onVerifyOtp={verifyOtp}
+        // onResendOtp={resendOtp}
         onForgotPassword={forgotPassword}
       />
     </>
