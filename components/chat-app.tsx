@@ -283,8 +283,9 @@ export function ChatApp() {
         top_k: 5,
         session_id: isLocal ? undefined : Number(targetConversationId),
       })
+      const newTurnId = response.message_id ? String(response.message_id) : createId("turn")
       const turn = {
-        id: createId("turn"),
+        id: newTurnId,
         question: trimmedQuery,
         response,
         createdAt: new Date().toISOString(),
