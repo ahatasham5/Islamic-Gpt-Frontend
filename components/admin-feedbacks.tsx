@@ -236,7 +236,7 @@ export function AdminFeedbacks({
                     onClick={() => setPage(page - 1)}
                   >
                     <ChevronLeft className="size-3 sm:size-4" />
-                    <span className="hidden xs:inline">Previous</span>
+                    <span className="xs:inline">Previous</span>
                   </Button>
                   <div className="text-[10px] sm:text-xs md:text-sm font-medium px-1 sm:px-2">
                     {page}/{totalPages}
@@ -248,7 +248,7 @@ export function AdminFeedbacks({
                     disabled={page >= totalPages || isLoading}
                     onClick={() => setPage(page + 1)}
                   >
-                    <span className="hidden xs:inline">Next</span>
+                    <span className="xs:inline">Next</span>
                     <ChevronRight className="size-3 sm:size-4" />
                   </Button>
                 </div>
