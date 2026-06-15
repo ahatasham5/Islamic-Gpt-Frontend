@@ -26,7 +26,9 @@ function getBackendBaseUrl() {
 function buildTargetUrl(request: NextRequest, path: string[]) {
   const backendBaseUrl = getBackendBaseUrl();
   const incomingUrl = new URL(request.url);
-  const targetPath = path.map(encodeURIComponent).join("/");
+  // Sanitize path to prevent directory traversal
+  const sanitizedPath = path.filter(segment => segment !== '..' && segment !== '.');
+  const targetPath = sanitizedPath.map(encodeURIComponent).join("/");
 
   return `${backendBaseUrl}/${targetPath}${incomingUrl.search}`;
 }
@@ -44,11 +46,43 @@ async function proxyRequest(request: NextRequest, context: RouteContext) {
 
   const headers = new Headers();
   const contentType = request.headers.get("content-type");
-  const authorization = request.headers.get("authorization");
   let body: BodyInit | undefined;
+  
+  // Extract token from HTTPOnly cookie
+  const cookieToken = request.cookies.get("islamic-gpt-token")?.value;
+  const authHeader = request.headers.get("authorization");
 
-  if (authorization) {
-    headers.set("authorization", authorization);
+  const hasAuth = !!cookieToken || !!authHeader;
+
+  // Routes that do not require an active user session
+  const PUBLIC_ROUTES = [
+    "auth/accept-invite",
+    "auth/signup",
+    "auth/resend-otp",
+    "auth/verify-otp",
+    "users/forgot-password",
+    "users/reset-password"
+  ];
+
+  let pathStr = "";
+  try {
+    const params = await context.params;
+    pathStr = params.path.join("/");
+  } catch (e) { }
+
+  const isPublic = PUBLIC_ROUTES.some(route => pathStr.startsWith(route));
+
+  if (!hasAuth && !isPublic) {
+    return Response.json(
+      { detail: "Unauthorized API access. Please log in." },
+      { status: 401 }
+    );
+  }
+
+  if (cookieToken) {
+    headers.set("authorization", `Bearer ${cookieToken}`);
+  } else if (authHeader) {
+    headers.set("authorization", authHeader);
   }
 
   if (!["GET", "HEAD"].includes(request.method)) {

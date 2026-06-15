@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react"
+import { useState, useEffect, type FormEvent } from "react"
 import { useRouter } from "next/router"
 import Head from "next/head"
 import { BrandMark } from "@/components/brand-mark"
@@ -21,7 +21,7 @@ function PageShell({ title, children }: { title: string; children: React.ReactNo
   return (
     <>
       <Head>
-        <title>{title} — ইসলামী প্রশ্নোত্তর</title>
+        <title>{`${title} — ইসলামী প্রশ্নোত্তর`}</title>
       </Head>
       <main className="min-h-dvh bg-gradient-to-b from-[#E8F5E6] via-[#D4EED1] to-white flex flex-col items-center justify-center px-4 py-10 sm:px-6 sm:py-12">
         <div className="w-full max-w-sm sm:max-w-md animate-in fade-in zoom-in-95 duration-500">
@@ -49,10 +49,18 @@ function BrandHeader() {
 export default function AcceptInvitePage() {
   const router = useRouter()
 
-  const tokenFromQuery =
-    typeof router.query.token === "string"
-      ? decodeURIComponent(router.query.token).trim()
-      : ""
+  const [tokenFromHash, setTokenFromHash] = useState("")
+  const [isHashReady, setIsHashReady] = useState(false)
+
+  useEffect(() => {
+    const hash = window.location.hash
+    const params = new URLSearchParams(hash.replace(/^#/, ''))
+    const token = params.get('token')
+    if (token) {
+      setTokenFromHash(token.trim())
+    }
+    setIsHashReady(true)
+  }, [])
 
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
@@ -70,13 +78,13 @@ export default function AcceptInvitePage() {
     setFormError("")
     setApiError("")
 
-    if (!tokenFromQuery) {
+    if (!tokenFromHash) {
       setPageState("invalid-link")
       return
     }
 
     const result = acceptInviteSchema.safeParse({
-      token: tokenFromQuery,
+      token: tokenFromHash,
       password,
       confirmPassword,
     })
@@ -102,7 +110,7 @@ export default function AcceptInvitePage() {
   }
 
   // ── অবৈধ লিংক ────────────────────────────────────────────────────────────
-  if (pageState === "invalid-link" || (router.isReady && !tokenFromQuery)) {
+  if (pageState === "invalid-link" || (isHashReady && !tokenFromHash)) {
     return (
       <PageShell title="অবৈধ আমন্ত্রণ লিংক">
         <BrandHeader />

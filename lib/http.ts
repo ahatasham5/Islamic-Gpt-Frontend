@@ -5,21 +5,7 @@ export const api = axios.create({
   timeout: 300000
 });
 
-let authToken: string | null = null;
-
-export function setAuthToken(token: string | null) {
-  authToken = token;
-}
-
-api.interceptors.request.use((config) => {
-  if (authToken) {
-    config.headers.Authorization = `Bearer ${authToken}`;
-  } else {
-    delete config.headers.Authorization;
-  }
-
-  return config;
-});
+// Interceptor removed: Auth token is now handled via HTTPOnly cookies sent automatically by the browser
 
 export async function apiRequest<T>(config: AxiosRequestConfig) {
   const response = await api.request<T>(config);
@@ -29,8 +15,14 @@ export async function apiRequest<T>(config: AxiosRequestConfig) {
 
 export function getApiErrorMessage(error: unknown) {
   if (axios.isAxiosError(error)) {
+    const status = error.response?.status;
     const payload = error.response?.data;
     
+    // Sanitize 500+ Internal Server Errors
+    if (status && status >= 500) {
+      return "An unexpected server error occurred. Please try again later.";
+    }
+
     if (typeof payload === "string") {
       return payload;
     }
@@ -42,9 +34,10 @@ export function getApiErrorMessage(error: unknown) {
       return detail;
     }
 
+    // Handle FastAPI validation array
     if (Array.isArray(detail)) {
       return detail
-        .map((item) => item?.msg || JSON.stringify(item))
+        .map((item) => item?.msg || "Validation error")
         .filter(Boolean)
         .join(" ");
     }
@@ -53,16 +46,13 @@ export function getApiErrorMessage(error: unknown) {
       return message;
     }
 
-    if (typeof detail === "object" && detail !== null) {
-      return JSON.stringify(detail);
-    }
-
-    return error.message;
+    // Avoid returning raw JSON strings of backend data
+    return "Something went wrong. Please try again.";
   }
 
   if (error instanceof Error) {
     return error.message;
   }
 
-  return "Unexpected error.";
+  return "An unexpected error occurred.";
 }
