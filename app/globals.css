@@ -4,6 +4,13 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Force Noto Sans Bengali for all Bengali Unicode characters site-wide */
+@font-face {
+  font-family: 'NotoSansBengaliOverride';
+  src: local('Noto Sans Bengali');
+  unicode-range: U+0980-09FF, U+200C-200D, U+25CC;
+}
+
 @keyframes ripple {
   0% {
     opacity: 0;
@@ -20,8 +27,8 @@
 }
 
 @theme inline {
-  --font-heading: var(--font-jakarta), var(--font-bengali), ui-sans-serif, system-ui, sans-serif;
-  --font-sans: var(--font-inter), var(--font-bengali), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-bengali), var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-bengali), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 
   --color-sidebar-ring: var(--sidebar-ring);
