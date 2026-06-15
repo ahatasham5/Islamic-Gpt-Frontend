@@ -31,7 +31,8 @@ export const authApi = {
   login(payload: UserLogin) {
     return apiRequest<Token>({
       method: "POST",
-      url: "/auth/login",
+      baseURL: "", // Override default proxy baseURL
+      url: "/api/auth/login",
       data: payload,
     })
   },

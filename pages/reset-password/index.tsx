@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react"
+import { useState, useEffect, type FormEvent } from "react"
 import { useRouter } from "next/router"
 import Head from "next/head"
 import { BrandMark } from "@/components/brand-mark"
@@ -21,7 +21,7 @@ function PageShell({ title, children }: { title: string; children: React.ReactNo
   return (
     <>
       <Head>
-        <title>{title} — ইসলামী প্রশ্নোত্তর</title>
+        <title>{`${title} — ইসলামী প্রশ্নোত্তর`}</title>
       </Head>
       <main className="relative min-h-dvh overflow-hidden bg-gradient-to-b from-[#E8F5E6] via-[#D4EED1] to-white flex items-center justify-center px-4 sm:px-6 py-8 sm:py-10">
         <div className="w-full max-w-sm sm:max-w-md lg:max-w-xl animate-in fade-in zoom-in-95 duration-500">
@@ -48,9 +48,18 @@ function PageShell({ title, children }: { title: string; children: React.ReactNo
 export default function ResetPasswordPage() {
   const router = useRouter()
 
-  const tokenFromQuery = typeof router.query.token === "string"
-    ? decodeURIComponent(router.query.token).trim()
-    : ""
+  const [tokenFromHash, setTokenFromHash] = useState("")
+  const [isHashReady, setIsHashReady] = useState(false)
+
+  useEffect(() => {
+    const hash = window.location.hash
+    const params = new URLSearchParams(hash.replace(/^#/, ''))
+    const token = params.get('token')
+    if (token) {
+      setTokenFromHash(token.trim())
+    }
+    setIsHashReady(true)
+  }, [])
 
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
@@ -68,13 +77,13 @@ export default function ResetPasswordPage() {
     setFormError("")
     setApiError("")
 
-    if (!tokenFromQuery) {
+    if (!tokenFromHash) {
       setPageState("invalid-link")
       return
     }
 
     const result = resetPasswordSchema.safeParse({
-      token: tokenFromQuery,
+      token: tokenFromHash,
       new_password: password,
       confirmPassword,
     })
@@ -100,7 +109,7 @@ export default function ResetPasswordPage() {
   }
 
   // ── অবৈধ লিংক ────────────────────────────────────────────────────────────
-  if (pageState === "invalid-link" || (router.isReady && !tokenFromQuery)) {
+  if (pageState === "invalid-link" || (isHashReady && !tokenFromHash)) {
     return (
       <PageShell title="অবৈধ রিসেট লিংক">
         <div className="rounded-2xl border-2 border-white/60 bg-white/30 p-6 sm:p-8 shadow-xl backdrop-blur-2xl text-center">
