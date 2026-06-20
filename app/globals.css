@@ -4,22 +4,17 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* Force Noto Sans Bengali for all Bengali Unicode characters site-wide */
-@font-face {
-  font-family: 'NotoSansBengaliOverride';
-  src: local('Noto Sans Bengali');
-  unicode-range: U+0980-09FF, U+200C-200D, U+25CC;
-}
-
 @keyframes ripple {
   0% {
     opacity: 0;
     transform: scale(0.8) translateY(10px);
   }
+
   50% {
     opacity: 1;
     transform: scale(1.02) translateY(0);
   }
+
   100% {
     opacity: 1;
     transform: scale(1) translateY(0);
@@ -168,9 +163,11 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
+
   html {
     @apply font-sans;
   }
@@ -181,16 +178,20 @@
   margin-bottom: 0.75rem;
   line-height: 1.85;
 }
+
 .answer-prose p:last-child {
   margin-bottom: 0;
 }
+
 .answer-prose strong {
   font-weight: 700;
   color: var(--foreground);
 }
+
 .answer-prose em {
   color: var(--accent-foreground);
 }
+
 .answer-prose code {
   background: var(--muted);
   border: 1px solid var(--border);
@@ -199,21 +200,25 @@
   font-size: 0.88em;
   padding: 1px 6px;
 }
+
 .answer-prose a {
   color: var(--primary);
   font-weight: 600;
   text-decoration: underline;
   text-underline-offset: 2px;
 }
+
 .answer-prose .formatted-heading {
   font-family: var(--font-heading);
   font-weight: 700;
   line-height: 1.5;
   margin: 1rem 0 0.5rem;
 }
+
 .answer-prose .formatted-space {
   height: 0.5rem;
 }
+
 .answer-prose .formatted-list-item {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
@@ -221,7 +226,8 @@
   margin-bottom: 0.5rem;
   line-height: 1.8;
 }
-.answer-prose .formatted-list-item > span:first-child {
+
+.answer-prose .formatted-list-item>span:first-child {
   color: var(--primary);
   font-weight: 700;
 }
@@ -237,14 +243,33 @@
 }
 
 @keyframes caretBlink {
-  0%, 45% { opacity: 1; }
-  46%, 100% { opacity: 0; }
+
+  0%,
+  45% {
+    opacity: 1;
+  }
+
+  46%,
+  100% {
+    opacity: 0;
+  }
 }
 
 @keyframes thinkingDot {
-  0%, 80%, 100% { opacity: 0.3; transform: translateY(0); }
-  40% { opacity: 1; transform: translateY(-4px); }
+
+  0%,
+  80%,
+  100% {
+    opacity: 0.3;
+    transform: translateY(0);
+  }
+
+  40% {
+    opacity: 1;
+    transform: translateY(-4px);
+  }
 }
+
 .thinking-dot {
   width: 6px;
   height: 6px;
@@ -252,33 +277,51 @@
   background: var(--primary);
   animation: thinkingDot 1s infinite ease-in-out;
 }
-.thinking-dot:nth-child(2) { animation-delay: 150ms; }
-.thinking-dot:nth-child(3) { animation-delay: 300ms; }
+
+.thinking-dot:nth-child(2) {
+  animation-delay: 150ms;
+}
+
+.thinking-dot:nth-child(3) {
+  animation-delay: 300ms;
+}
 
 @keyframes fadeRise {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
+
 .animate-fade-rise {
   animation: fadeRise 280ms ease-out both;
 }
 
 @keyframes fall {
-  0% { 
+  0% {
     transform: translateY(-10%) rotate(0deg);
     opacity: 0;
   }
+
   10% {
     opacity: 0.7;
   }
+
   90% {
     opacity: 0.7;
   }
-  100% { 
+
+  100% {
     transform: translateY(110vh) rotate(360deg);
     opacity: 0;
   }
 }
+
 .animate-fall {
   animation: fall 10s ease-in-out infinite;
 }
