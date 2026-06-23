@@ -1,8 +1,8 @@
-import { type ChangeEvent } from "react"
+import { type ChangeEvent, useState, useEffect, useRef, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { formatDate } from "@/lib/format"
 import type { BookInfo, AuthSession } from "@/lib/types"
-import { BookOpen, FileUp, Loader2, Mail, Menu, Trash2, ChevronLeft, ChevronRight, User, Settings, LogOut, ChevronDown } from "lucide-react"
+import { BookOpen, FileUp, Loader2, Mail, Menu, Trash2, ChevronLeft, ChevronRight, User, Settings, LogOut, ChevronDown, Search, X } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,6 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { booksApi } from "@/lib/api/books"
 
 function getBookLabel(book: BookInfo) {
   return book.book_title || book.file_name || book.book_id
@@ -52,6 +53,66 @@ export function BookManager({
   onLogout: () => void
   onOpenSettings: (tab: "profile" | "security") => void
 }) {
+  const [searchQuery, setSearchQuery] = useState("")
+  const [searchResults, setSearchResults] = useState<BookInfo[]>([])
+  const [searchTotal, setSearchTotal] = useState(0)
+  const [searchPage, setSearchPage] = useState(1)
+  const [isSearching, setIsSearching] = useState(false)
+  const isSearchMode = searchQuery.trim().length > 0
+  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const runSearch = useCallback(async (q: string, p: number) => {
+    if (!q.trim()) return
+    setIsSearching(true)
+    try {
+      const data = await booksApi.search(q.trim(), p, size)
+      setSearchResults(data.books)
+      setSearchTotal(data.total)
+    } catch {
+      setSearchResults([])
+      setSearchTotal(0)
+    } finally {
+      setIsSearching(false)
+    }
+  }, [size])
+
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSearchResults([])
+      setSearchTotal(0)
+      setSearchPage(1)
+      return
+    }
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current)
+    searchDebounceRef.current = setTimeout(() => {
+      setSearchPage(1)
+      runSearch(searchQuery, 1)
+    }, 300)
+    return () => {
+      if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current)
+    }
+  }, [searchQuery, runSearch])
+
+  useEffect(() => {
+    if (isSearchMode) {
+      runSearch(searchQuery, searchPage)
+    }
+  }, [searchPage]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const displayBooks = isSearchMode ? searchResults : books
+  const displayTotal = isSearchMode ? searchTotal : total
+  const displayPage = isSearchMode ? searchPage : page
+  const displayTotalPages = Math.max(1, Math.ceil(displayTotal / size))
+  const isLoading = isSearchMode ? isSearching : isLoadingBooks
+
+  function handlePageChange(p: number) {
+    if (isSearchMode) {
+      setSearchPage(p)
+    } else {
+      onPageChange(p)
+    }
+  }
+
   const totalPages = Math.max(1, Math.ceil(total / size))
 
   return (
@@ -78,6 +139,28 @@ export function BookManager({
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3">
+          {/* Search bar */}
+          <div className="relative hidden sm:flex items-center">
+            <Search className="absolute left-2.5 size-3.5 text-muted-foreground pointer-events-none" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="কিতাব খুঁজুন..."
+              className="h-8 w-44 lg:w-56 rounded-lg border border-border bg-background pl-8 pr-7 text-xs focus:outline-none focus:ring-2 focus:ring-ring"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                className="absolute right-2 text-muted-foreground hover:text-foreground"
+                aria-label="Clear search"
+              >
+                <X className="size-3" />
+              </button>
+            )}
+          </div>
+
           {canManageBooks && (
             <label className="inline-flex cursor-pointer items-center gap-1.5 sm:gap-2 rounded-xl bg-primary px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold text-primary-foreground shadow-sm transition hover:opacity-90 aria-disabled:opacity-60">
               <input type="file" accept=".md" onChange={onUpload} disabled={isUploading} className="hidden" />
@@ -132,31 +215,59 @@ export function BookManager({
 
       <div className="flex-1 overflow-auto p-3 sm:p-4 md:p-6 lg:p-8 flex flex-col">
         <div className="w-full flex-1 flex flex-col">
+          {/* Mobile search */}
+          <div className="relative flex sm:hidden items-center mb-3">
+            <Search className="absolute left-2.5 size-3.5 text-muted-foreground pointer-events-none" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="কিতাব খুঁজুন..."
+              className="h-8 w-full rounded-lg border border-border bg-background pl-8 pr-7 text-xs focus:outline-none focus:ring-2 focus:ring-ring"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                className="absolute right-2 text-muted-foreground hover:text-foreground"
+                aria-label="Clear search"
+              >
+                <X className="size-3" />
+              </button>
+            )}
+          </div>
+
           {uploadMessage && (
             <p className="mb-3 sm:mb-4 shrink-0 rounded-xl border border-border bg-card px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-foreground">
               {uploadMessage}
             </p>
           )}
 
-          {canManageBooks && (
+          {canManageBooks && !isSearchMode && (
             <p className="mb-3 sm:mb-4 shrink-0 text-xs sm:text-sm text-muted-foreground font-bold">
               শুধুমাত্র <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">.md</code> ফরম্যাটের কিতাব আপলোড করা যাবে।
             </p>
           )}
 
-          {isLoadingBooks ? (
+          {isLoading ? (
             <div className="flex flex-1 items-center justify-center gap-2 py-12 text-muted-foreground text-sm">
               <Loader2 className="size-4 animate-spin" />
               লোড হচ্ছে...
             </div>
-          ) : books.length === 0 ? (
+          ) : displayBooks.length === 0 ? (
             <div className="flex flex-1 flex-col items-center justify-center rounded-2xl border border-dashed border-border py-12 sm:py-16 text-center px-4">
               <span className="inline-flex size-10 sm:size-12 items-center justify-center rounded-2xl bg-accent text-primary">
                 <BookOpen className="size-5 sm:size-6" />
               </span>
-              <p className="mt-3 sm:mt-4 font-medium text-foreground text-sm sm:text-base">কোনো কিতাব নেই</p>
+              <p className="mt-3 sm:mt-4 font-medium text-foreground text-sm sm:text-base">
+                {isSearchMode ? "কোনো ফলাফল পাওয়া যায়নি" : "কোনো কিতাব নেই"}
+              </p>
               <p className="mt-1 text-xs sm:text-sm text-muted-foreground">
-                {canManageBooks ? "প্রথম কিতাবটি আপলোড করে শুরু করুন।" : "আপাতত কোনো কিতাব নেই।"}
+                {isSearchMode
+                  ? `"${searchQuery}" এর জন্য কোনো কিতাব খুঁজে পাওয়া যায়নি।`
+                  : canManageBooks
+                  ? "প্রথম কিতাবটি আপলোড করে শুরু করুন।"
+                  : "আপাতত কোনো কিতাব নেই।"}
               </p>
             </div>
           ) : (
@@ -175,7 +286,7 @@ export function BookManager({
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
-                    {books.map((book) => (
+                    {displayBooks.map((book) => (
                       <tr key={book.book_id} className="transition even:bg-muted/30 hover:bg-accent/20">
                         <td className="px-4 lg:px-6 py-3 lg:py-4">
                           <div className="flex items-center gap-2 lg:gap-3">
@@ -225,7 +336,7 @@ export function BookManager({
 
               {/* Mobile Cards – below md */}
               <div className="md:hidden divide-y divide-border">
-                {books.map((book) => (
+                {displayBooks.map((book) => (
                   <div key={book.book_id} className="p-3 sm:p-4 space-y-2">
                     {/* Title row */}
                     <div className="flex items-start justify-between gap-2">
@@ -284,11 +395,11 @@ export function BookManager({
               <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-border px-3 sm:px-4 lg:px-6 py-3 sm:py-4 mt-auto">
                 <div className="text-xs sm:text-sm text-muted-foreground order-2 sm:order-1">
                   <span className="hidden sm:inline">Showing </span>
-                  <span className="font-medium text-foreground">{(page - 1) * size + 1}</span>
+                  <span className="font-medium text-foreground">{(displayPage - 1) * size + 1}</span>
                   {" – "}
-                  <span className="font-medium text-foreground">{Math.min(page * size, total)}</span>
+                  <span className="font-medium text-foreground">{Math.min(displayPage * size, displayTotal)}</span>
                   {" of "}
-                  <span className="font-medium text-foreground">{total}</span>
+                  <span className="font-medium text-foreground">{displayTotal}</span>
                   <span className="hidden sm:inline"> entries</span>
                 </div>
 
@@ -297,22 +408,22 @@ export function BookManager({
                     variant="outline"
                     size="sm"
                     className="h-8 px-2 sm:px-3 gap-1 sm:gap-1.5"
-                    disabled={page <= 1 || isLoadingBooks}
-                    onClick={() => onPageChange(page - 1)}
+                    disabled={displayPage <= 1 || isLoading}
+                    onClick={() => handlePageChange(displayPage - 1)}
                   >
                     <ChevronLeft className="size-3 sm:size-4" />
                     <span className="hidden sm:inline">Previous</span>
                     <span className="sm:hidden">Prev</span>
                   </Button>
                   <div className="text-xs sm:text-sm font-medium px-1">
-                    {page} / {totalPages}
+                    {displayPage} / {displayTotalPages}
                   </div>
                   <Button
                     variant="outline"
                     size="sm"
                     className="h-8 px-2 sm:px-3 gap-1 sm:gap-1.5"
-                    disabled={page >= totalPages || isLoadingBooks}
-                    onClick={() => onPageChange(page + 1)}
+                    disabled={displayPage >= displayTotalPages || isLoading}
+                    onClick={() => handlePageChange(displayPage + 1)}
                   >
                     <span>Next</span>
                     <ChevronRight className="size-3 sm:size-4" />
