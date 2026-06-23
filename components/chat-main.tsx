@@ -361,7 +361,7 @@ export function ChatMain({
                   >
                     <DropdownMenuItem
                       className="cursor-pointer text-xs sm:text-sm"
-                      onSelect={() => onBookChange(null)}
+                      onClick={() => onBookChange(null)}
                     >
                       <span className={cn("flex-1", !selectedBookId && "font-semibold text-primary")}>
                         সব কিতাব
@@ -373,7 +373,7 @@ export function ChatMain({
                       <DropdownMenuItem
                         key={b.book_id}
                         className="cursor-pointer text-xs sm:text-sm"
-                        onSelect={() => onBookChange(b.book_id)}
+                        onClick={() => onBookChange(b.book_id)}
                       >
                         <span className={cn(
                           "flex-1 truncate",
