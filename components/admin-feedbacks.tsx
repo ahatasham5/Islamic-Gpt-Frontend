@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { Button } from "@/components/ui/button"
-import { Loader2, Trash2, Eye, ThumbsUp, ThumbsDown, ChevronLeft, ChevronRight, MessageSquare, Menu, User, Settings, LogOut, ChevronDown } from "lucide-react"
+import { Loader2, Trash2, Eye, ThumbsUp, ThumbsDown, ChevronLeft, ChevronRight, MessageSquare, Menu, User, Settings, LogOut, ChevronDown, Search, X } from "lucide-react"
 import { adminApi, type AdminFeedback } from "@/lib/api/admin"
 import { cn } from "@/lib/utils"
 import type { AuthSession } from "@/lib/types"
@@ -41,9 +41,70 @@ export function AdminFeedbacks({
   const [feedbackToDelete, setFeedbackToDelete] = useState<AdminFeedback | null>(null)
   const [isDeletingFeedback, setIsDeletingFeedback] = useState(false)
   const [selectedFeedback, setSelectedFeedback] = useState<AdminFeedback | null>(null)
-  
+
+  // Search state
+  const [searchQuery, setSearchQuery] = useState("")
+  const [searchResults, setSearchResults] = useState<AdminFeedback[]>([])
+  const [searchTotal, setSearchTotal] = useState(0)
+  const [searchPage, setSearchPage] = useState(1)
+  const [isSearching, setIsSearching] = useState(false)
+  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const isSearchMode = searchQuery.trim().length > 0
   const size = 10
   const totalPages = Math.max(1, Math.ceil(total / size))
+
+  const displayFeedbacks = isSearchMode ? searchResults : feedbacks
+  const displayTotal = isSearchMode ? searchTotal : total
+  const displayPage = isSearchMode ? searchPage : page
+  const displayTotalPages = Math.max(1, Math.ceil(displayTotal / size))
+  const isLoadingAny = isSearchMode ? isSearching : isLoading
+
+  const runSearch = useCallback(async (q: string, p: number) => {
+    if (!q.trim()) return
+    setIsSearching(true)
+    try {
+      const data = await adminApi.searchFeedbacks(q.trim(), p, size)
+      setSearchResults(data.feedbacks)
+      setSearchTotal(data.total)
+    } catch {
+      setSearchResults([])
+      setSearchTotal(0)
+    } finally {
+      setIsSearching(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSearchResults([])
+      setSearchTotal(0)
+      setSearchPage(1)
+      return
+    }
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current)
+    searchDebounceRef.current = setTimeout(() => {
+      setSearchPage(1)
+      runSearch(searchQuery, 1)
+    }, 300)
+    return () => {
+      if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current)
+    }
+  }, [searchQuery, runSearch])
+
+  useEffect(() => {
+    if (isSearchMode) {
+      runSearch(searchQuery, searchPage)
+    }
+  }, [searchPage]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  function handlePageChange(p: number) {
+    if (isSearchMode) {
+      setSearchPage(p)
+    } else {
+      setPage(p)
+    }
+  }
 
   async function loadFeedbacks(p: number) {
     setIsLoading(true)
@@ -100,6 +161,28 @@ export function AdminFeedbacks({
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3">
+          {/* Search bar */}
+          <div className="relative hidden sm:flex items-center">
+            <Search className="absolute left-2.5 size-3.5 text-muted-foreground pointer-events-none" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="মুফতির নামে খুঁজুন..."
+              className="h-8 w-44 lg:w-56 rounded-lg border border-border bg-background pl-8 pr-7 text-xs focus:outline-none focus:ring-2 focus:ring-ring"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                className="absolute right-2 text-muted-foreground hover:text-foreground"
+                aria-label="Clear search"
+              >
+                <X className="size-3" />
+              </button>
+            )}
+          </div>
+
           <DropdownMenu>
             <DropdownMenuTrigger
               className="flex items-center gap-1.5 sm:gap-2 rounded-full border border-border bg-card py-1 sm:py-1.5 pl-1 sm:pl-1.5 pr-2 sm:pr-3 text-xs sm:text-sm font-medium transition hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer"
@@ -144,14 +227,38 @@ export function AdminFeedbacks({
 
       <div className="flex-1 overflow-auto p-3 sm:p-4 md:p-6 lg:p-8 flex flex-col">
         <div className="w-full flex-1 flex flex-col">
-          {isLoading ? (
+          {/* Mobile search */}
+          <div className="relative flex sm:hidden items-center mb-3">
+            <Search className="absolute left-2.5 size-3.5 text-muted-foreground pointer-events-none" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="মুফতির নামে খুঁজুন..."
+              className="h-8 w-full rounded-lg border border-border bg-background pl-8 pr-7 text-xs focus:outline-none focus:ring-2 focus:ring-ring"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                className="absolute right-2 text-muted-foreground hover:text-foreground"
+                aria-label="Clear search"
+              >
+                <X className="size-3" />
+              </button>
+            )}
+          </div>
+
+          {isLoadingAny ? (
             <div className="flex h-48 sm:h-64 items-center justify-center">
               <Loader2 className="size-6 sm:size-8 animate-spin text-muted-foreground" />
             </div>
-          ) : feedbacks.length === 0 ? (
+          ) : displayFeedbacks.length === 0 ? (
             <div className="flex h-48 sm:h-64 flex-col items-center justify-center text-muted-foreground">
               <MessageSquare className="mb-3 sm:mb-4 size-10 sm:size-12 opacity-20" />
-              <p className="text-sm sm:text-base">কোনো মতামত পাওয়া যায়নি।</p>
+              <p className="text-sm sm:text-base">
+                {isSearchMode ? `"${searchQuery}" এর জন্য কোনো ফলাফল পাওয়া যায়নি।` : "কোনো মতামত পাওয়া যায়নি।"}
+              </p>
             </div>
           ) : (
             <div className="flex flex-1 flex-col rounded-xl sm:rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
@@ -166,7 +273,7 @@ export function AdminFeedbacks({
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
-                    {feedbacks.map((f) => (
+                    {displayFeedbacks.map((f) => (
                       <tr key={f.id} className="transition even:bg-muted/30 hover:bg-accent/20">
                         <td className="px-3 sm:px-4 md:px-6 py-2.5 sm:py-3 md:py-4">
                           <div className="font-semibold text-foreground text-xs sm:text-sm">
@@ -224,7 +331,7 @@ export function AdminFeedbacks({
               {/* Pagination Controls */}
               <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-0 border-t border-border px-3 sm:px-4 md:px-6 py-3 sm:py-4 mt-auto">
                 <div className="text-[10px] sm:text-xs md:text-sm text-muted-foreground text-center sm:text-left">
-                  Showing <span className="font-medium text-foreground">{(page - 1) * size + 1}</span> to <span className="font-medium text-foreground">{Math.min(page * size, total)}</span> of <span className="font-medium text-foreground">{total}</span>
+                  Showing <span className="font-medium text-foreground">{(displayPage - 1) * size + 1}</span> to <span className="font-medium text-foreground">{Math.min(displayPage * size, displayTotal)}</span> of <span className="font-medium text-foreground">{displayTotal}</span>
                 </div>
 
                 <div className="flex items-center gap-1.5 sm:gap-2">
@@ -232,21 +339,21 @@ export function AdminFeedbacks({
                     variant="outline"
                     size="sm"
                     className="gap-1 sm:gap-1.5 h-7 sm:h-8 px-2 sm:px-3 text-xs"
-                    disabled={page <= 1 || isLoading}
-                    onClick={() => setPage(page - 1)}
+                    disabled={displayPage <= 1 || isLoadingAny}
+                    onClick={() => handlePageChange(displayPage - 1)}
                   >
                     <ChevronLeft className="size-3 sm:size-4" />
                     <span className="xs:inline">Previous</span>
                   </Button>
                   <div className="text-[10px] sm:text-xs md:text-sm font-medium px-1 sm:px-2">
-                    {page}/{totalPages}
+                    {displayPage}/{displayTotalPages}
                   </div>
                   <Button
                     variant="outline"
                     size="sm"
                     className="gap-1 sm:gap-1.5 h-7 sm:h-8 px-2 sm:px-3 text-xs"
-                    disabled={page >= totalPages || isLoading}
-                    onClick={() => setPage(page + 1)}
+                    disabled={displayPage >= displayTotalPages || isLoadingAny}
+                    onClick={() => handlePageChange(displayPage + 1)}
                   >
                     <span className="xs:inline">Next</span>
                     <ChevronRight className="size-3 sm:size-4" />

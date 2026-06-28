@@ -1,41 +1,42 @@
-import { useState, useCallback, useEffect } from "react"
+import { useState, useCallback, useEffect, useRef } from "react"
 import { sessionsApi } from "@/lib/api/sessions"
 import { getApiErrorMessage } from "@/lib/http"
-import type { SessionSummary, SessionDetailResponse } from "@/lib/types"
+import type { SessionSummary } from "@/lib/types"
 
 export function useSessions(enabled: boolean) {
   const [sessions, setSessions] = useState<SessionSummary[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
-
   const [hasMore, setHasMore] = useState(false)
-  const [page, setPage] = useState(1)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
+
+  // Use a ref for the current page so loadSessions doesn't need it as a dep
+  const pageRef = useRef(1)
 
   const loadSessions = useCallback(async (reset = true) => {
     if (!enabled) return
     if (reset) {
       setIsLoading(true)
-      setPage(1)
+      pageRef.current = 1
     } else {
       setIsLoadingMore(true)
     }
     setError("")
-    
+
     try {
-      const currentPage = reset ? 1 : page + 1
-      const response = await sessionsApi.getSessions(currentPage, 30) // Use size 30
-      
+      const currentPage = reset ? 1 : pageRef.current + 1
+      const response = await sessionsApi.getSessions(currentPage, 30)
+
       setSessions((prev) => reset ? response.sessions : [...prev, ...response.sessions])
       setHasMore(response.page * response.size < response.total)
-      if (!reset) setPage(currentPage)
+      pageRef.current = currentPage
     } catch (err) {
       setError(getApiErrorMessage(err))
     } finally {
       if (reset) setIsLoading(false)
       else setIsLoadingMore(false)
     }
-  }, [enabled, page])
+  }, [enabled]) // no `page` dep — uses ref instead
 
   useEffect(() => {
     loadSessions()
@@ -57,7 +58,7 @@ export function useSessions(enabled: boolean) {
       setSessions((prev) =>
         prev.map((s) => (s.id === id ? { ...s, is_pinned: isPinned } : s))
       )
-      loadSessions() // To keep the list sorted by pinned
+      loadSessions()
     } catch (err) {
       setError(getApiErrorMessage(err))
       throw err

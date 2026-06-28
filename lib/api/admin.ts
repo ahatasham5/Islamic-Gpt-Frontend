@@ -47,6 +47,14 @@ export const adminApi = {
     });
   },
 
+  searchFeedbacks(q: string, page = 1, size = 10) {
+    return apiRequest<FeedbacksResponse>({
+      method: "GET",
+      url: `/admin/feedbacks/search`,
+      params: { q, page, size },
+    });
+  },
+
   deleteFeedback(feedbackId: number) {
     return apiRequest<string>({
       method: "DELETE",
@@ -58,6 +66,14 @@ export const adminApi = {
     return apiRequest<UsersResponse>({
       method: "GET",
       url: `/admin/users?page=${page}&size=${size}`,
+    });
+  },
+
+  searchUsers(q: string, page = 1, size = 10) {
+    return apiRequest<UsersResponse>({
+      method: "GET",
+      url: `/admin/users/search`,
+      params: { q, page, size },
     });
   },
 

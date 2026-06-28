@@ -5,9 +5,9 @@ import { FeedbackDialog } from "@/components/feedback-dialog"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { confidenceLabels, type DraftConversation, type ChatTurn, type ServerState } from "@/lib/app-types"
-import { ArrowUp, BookOpen, Check, Copy, FileSearch, Menu, PanelRightClose, PanelRightOpen, ShieldQuestion, Sparkles, User, Settings, LogOut, ChevronDown, ThumbsUp, ThumbsDown, MessageSquare, Mail } from "lucide-react"
+import { ArrowUp, BookOpen, Check, Copy, FileSearch, Globe, Menu, PanelRightClose, PanelRightOpen, ShieldQuestion, Sparkles, User, Settings, LogOut, ChevronDown, ThumbsUp, ThumbsDown, MessageSquare, Mail } from "lucide-react"
 
-import type { AuthSession } from "@/lib/types"
+import type { AuthSession, BookInfo } from "@/lib/types"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -52,7 +52,12 @@ export function ChatMain({
   chatError,
   query,
   serverState,
+  webSearch,
+  selectedBookId,
+  books,
   onQueryChange,
+  onWebSearchChange,
+  onBookChange,
   onSubmit,
   onSelectTurn,
   onStreamDone,
@@ -74,7 +79,12 @@ export function ChatMain({
   chatError: string
   query: string
   serverState: ServerState
+  webSearch: boolean
+  selectedBookId: string | null
+  books: BookInfo[]
   onQueryChange: (value: string) => void
+  onWebSearchChange: (value: boolean) => void
+  onBookChange: (bookId: string | null) => void
   onSubmit: (event: FormEvent<HTMLFormElement>) => void
   onSelectTurn: (id: string) => void
   onStreamDone: () => void
@@ -281,25 +291,105 @@ export function ChatMain({
             </p>
           ) : null}
 
-          <div className="flex items-end gap-1.5 sm:gap-2 rounded-lg sm:rounded-xl border border-border bg-card p-1.5 sm:p-2 shadow-sm transition focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/20">
-            <textarea
-              ref={textareaRef}
-              dir="auto"
-              value={query}
-              onChange={(e) => onQueryChange(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="আপনার প্রশ্ন লিখুন..."
-              className="min-h-9 sm:min-h-10 max-h-32 sm:max-h-40 min-w-0 flex-1 resize-none overflow-y-auto bg-transparent px-2 sm:px-2.5 py-1.5 sm:py-2 text-xs sm:text-sm leading-relaxed outline-none placeholder:text-muted-foreground"
-            />
-            <button
-              type="submit"
-              disabled={isAsking || serverState === "offline" || query.trim().length < 5}
-              className="inline-flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-lg sm:rounded-xl bg-primary text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
-              aria-label="প্রশ্ন পাঠান"
-            >
-              <ArrowUp className="size-4 sm:size-5" />
-            </button>
+          <div className="rounded-lg sm:rounded-xl border border-border bg-card shadow-sm transition focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/20">
+            {/* Textarea row */}
+            <div className="flex items-end gap-1.5 sm:gap-2 p-1.5 sm:p-2">
+              <textarea
+                ref={textareaRef}
+                dir="auto"
+                value={query}
+                onChange={(e) => onQueryChange(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="আপনার প্রশ্ন লিখুন..."
+                className="min-h-9 sm:min-h-10 max-h-32 sm:max-h-40 min-w-0 flex-1 resize-none overflow-y-auto bg-transparent px-2 sm:px-2.5 py-1.5 sm:py-2 text-xs sm:text-sm leading-relaxed outline-none placeholder:text-muted-foreground"
+              />
+              <button
+                type="submit"
+                disabled={isAsking || serverState === "offline" || query.trim().length < 5}
+                className="inline-flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-lg sm:rounded-xl bg-primary text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+                aria-label="প্রশ্ন পাঠান"
+              >
+                <ArrowUp className="size-4 sm:size-5" />
+              </button>
+            </div>
+
+            {/* Options row */}
+            <div className="flex items-center gap-1.5 sm:gap-2 border-t border-border/60 px-2 sm:px-3 py-1.5 sm:py-2 overflow-x-auto">
+              {/* Web search toggle */}
+              <button
+                type="button"
+                onClick={() => onWebSearchChange(!webSearch)}
+                className={cn(
+                  "inline-flex shrink-0 items-center gap-1 sm:gap-1.5 rounded-md border px-2 py-1 text-[10px] sm:text-xs font-medium transition",
+                  webSearch
+                    ? "border-primary/40 bg-primary/10 text-primary"
+                    : "border-border bg-transparent text-muted-foreground hover:bg-accent/40 hover:text-foreground"
+                )}
+                title="ওয়েব থেকে ফতোয়া খুঁজুন"
+              >
+                <Globe className="size-3 sm:size-3.5" />
+                <span>Web Search</span>
+                {webSearch && <span className="ml-0.5 size-1.5 rounded-full bg-primary inline-block" />}
+              </button>
+
+              {/* Book selector — hidden when web search is on */}
+              {!webSearch && books.length > 0 && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger
+                    className={cn(
+                      "inline-flex shrink-0 items-center gap-1 sm:gap-1.5 rounded-md border px-2 py-1 text-[10px] sm:text-xs font-medium transition focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
+                      selectedBookId
+                        ? "border-primary/40 bg-primary/10 text-primary"
+                        : "border-border bg-transparent text-muted-foreground hover:bg-accent/40 hover:text-foreground"
+                    )}
+                    title="নির্দিষ্ট কিতাব নির্বাচন করুন"
+                  >
+                    <BookOpen className="size-3 sm:size-3.5 shrink-0" />
+                    <span className="max-w-[120px] sm:max-w-[180px] truncate">
+                      {selectedBookId
+                        ? (books.find((b) => b.book_id === selectedBookId)?.book_title ||
+                           books.find((b) => b.book_id === selectedBookId)?.file_name ||
+                           "কিতাব")
+                        : "সব কিতাব"}
+                    </span>
+                    <ChevronDown className="size-3 shrink-0 opacity-60" />
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    align="start"
+                    side="top"
+                    className="w-64 sm:w-72 max-h-60 overflow-y-auto"
+                  >
+                    <DropdownMenuItem
+                      className="cursor-pointer text-xs sm:text-sm"
+                      onClick={() => onBookChange(null)}
+                    >
+                      <span className={cn("flex-1", !selectedBookId && "font-semibold text-primary")}>
+                        সব কিতাব
+                      </span>
+                      {!selectedBookId && <Check className="size-3.5 text-primary ml-2" />}
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    {books.map((b) => (
+                      <DropdownMenuItem
+                        key={b.book_id}
+                        className="cursor-pointer text-xs sm:text-sm"
+                        onClick={() => onBookChange(b.book_id)}
+                      >
+                        <span className={cn(
+                          "flex-1 truncate",
+                          selectedBookId === b.book_id && "font-semibold text-primary"
+                        )}>
+                          {b.book_title || b.file_name}
+                        </span>
+                        {selectedBookId === b.book_id && <Check className="size-3.5 text-primary ml-2 shrink-0" />}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+            </div>
           </div>
+
           <p className="mt-1.5 sm:mt-2 px-1 text-center text-[10px] sm:text-xs text-muted-foreground">
             Fatwa GPT ভুল করতে পারে — গুরুত্বপূর্ণ বিষয়ে আলেমের পরামর্শ নিন।
           </p>

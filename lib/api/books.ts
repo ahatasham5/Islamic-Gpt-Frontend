@@ -10,6 +10,14 @@ export const booksApi = {
     })
   },
 
+  search(q: string, page: number = 1, size: number = 10) {
+    return apiRequest<BookListResponse>({
+      method: "GET",
+      url: "/books/search",
+      params: { q, page, size },
+    })
+  },
+
   upload(formData: FormData) {
     return apiRequest<BookUploadResponse>({
       method: "POST",

@@ -6,6 +6,7 @@ import { useHealth } from "@/hooks/use-health"
 import { useAuthContext } from "@/lib/auth-context"
 import { useSessions } from "@/hooks/use-sessions"
 import { sessionsApi } from "@/lib/api/sessions"
+import { booksApi } from "@/lib/api/books"
 import type { DraftConversation, ViewMode } from "@/lib/app-types"
 import { createId } from "@/lib/format"
 import type { BookInfo, Source } from "@/lib/types"
@@ -40,6 +41,8 @@ export function ChatApp() {
   const health = useHealth(Boolean(session))
   const chat = useChat()
   const bookState = useBooks(Boolean(session && canViewBooks))
+  // All authenticated users need the book list for the chat book selector
+  const [allBooks, setAllBooks] = useState<BookInfo[]>([])
   const sessionState = useSessions(Boolean(session))
 
   const [conversations, setConversations] = useState<DraftConversation[]>(initialConversations)
@@ -87,6 +90,16 @@ export function ChatApp() {
   const [bookToDelete, setBookToDelete] = useState<BookInfo | null>(null)
   const [sessionToDelete, setSessionToDelete] = useState<string | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
+
+  // Chat options
+  const [webSearch, setWebSearch] = useState(false)
+  const [selectedBookId, setSelectedBookId] = useState<string | null>(null)
+
+  // Load full book list for the chat book selector (all roles)
+  useEffect(() => {
+    if (!session) return
+    booksApi.list(1, 100).then((res) => setAllBooks(res.books)).catch(() => {})
+  }, [session])
 
   const activeConversation = useMemo(
     () => conversations.find((c) => c.id === activeConversationId) ?? conversations[0],
@@ -279,9 +292,10 @@ export function ChatApp() {
       const isLocal = targetConversationId.startsWith("local") || targetConversationId.startsWith("chat");
       const response = await chat.ask({
         query: trimmedQuery,
-        book_id: null,
-        top_k: 5,
+        book_id: webSearch ? null : (selectedBookId ?? null),
+        top_k: 15,
         session_id: isLocal ? undefined : Number(targetConversationId),
+        web_search: webSearch,
       })
       const newTurnId = response.message_id ? String(response.message_id) : createId("turn")
       const turn = {
@@ -519,7 +533,12 @@ export function ChatApp() {
           query={query}
           serverState={health.serverState}
           session={session}
+          webSearch={webSearch}
+          selectedBookId={selectedBookId}
+          books={allBooks}
           onQueryChange={setQuery}
+          onWebSearchChange={setWebSearch}
+          onBookChange={setSelectedBookId}
           onSubmit={handleAsk}
           onLogout={handleLogout}
           onSelectTurn={(id) => {
