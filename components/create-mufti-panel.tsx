@@ -35,10 +35,7 @@ export function CreateMuftiDialog({
   }
 
   function handleOpenChange(nextOpen: boolean) {
-    if (nextOpen && !open) {
-      resetForm()
-    }
-
+    if (nextOpen && !open) resetForm()
     onOpenChange(nextOpen)
   }
 
@@ -64,7 +61,6 @@ export function CreateMuftiDialog({
     }
 
     setFormState("submitting")
-
     try {
       const user = await authApi.createMufti({ name, email })
       setCreatedUser(user)
@@ -84,51 +80,49 @@ export function CreateMuftiDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-hidden rounded-lg border border-border bg-popover p-0 shadow-2xl sm:max-w-[520px] data-open:duration-200 data-open:slide-in-from-bottom-3">
-        <div className="relative border-b border-border bg-secondary/70 px-5 py-5 sm:px-6">
+      <DialogContent className="w-[93vw] max-w-md sm:max-w-[520px] max-h-[calc(100dvh-1.5rem)] sm:max-h-[calc(100dvh-2rem)] overflow-y-auto overflow-x-hidden rounded-lg border border-border bg-popover p-0 shadow-2xl">
+        {/* Header band */}
+        <div className="relative border-b border-border bg-secondary/70 px-4 py-4 sm:px-6 sm:py-5">
           <div className="absolute inset-x-0 top-0 h-1 bg-primary" />
           <DialogHeader className="pr-8">
-            <div className="flex items-center gap-3">
-              <span className="inline-flex size-11 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm">
-                <UserPlus className="size-5" />
+            <div className="flex items-center gap-2.5 sm:gap-3">
+              <span className="inline-flex size-9 sm:size-11 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm">
+                <UserPlus className="size-4 sm:size-5" />
               </span>
               <div className="min-w-0">
-                <p className="text-xs font-semibold text-primary">
+                <p className="text-[10px] sm:text-xs font-semibold text-primary uppercase tracking-wide">
                   অ্যাডমিন আমন্ত্রণ
                 </p>
-                <DialogTitle className="mt-1 font-heading text-xl font-bold leading-tight">
+                <DialogTitle className="mt-0.5 font-heading text-lg sm:text-xl font-bold leading-tight">
                   মুফতি আমন্ত্রণ করুন
                 </DialogTitle>
               </div>
             </div>
-            <DialogDescription className="max-w-[28rem] pt-1 leading-relaxed">
+            <DialogDescription className="pt-1 text-xs sm:text-sm leading-relaxed">
               নতুন মুফতির জন্য অ্যাকাউন্ট তৈরি এবং পাসওয়ার্ড সেটআপের জন্য ইমেইল স্বয়ংক্রিয়ভাবে পাঠান
             </DialogDescription>
           </DialogHeader>
         </div>
 
+        {/* Success state */}
         {formState === "success" && createdUser ? (
-          <div className="animate-fade-rise p-5 sm:p-6">
+          <div className="animate-fade-rise p-4 sm:p-6">
             <div className="text-center">
-              <span className="inline-flex size-16 items-center justify-center rounded-full bg-accent text-primary ring-8 ring-accent/45">
-                <CheckCircle2 className="size-8" />
+              <span className="inline-flex size-14 sm:size-16 items-center justify-center rounded-full bg-accent text-primary ring-8 ring-accent/45">
+                <CheckCircle2 className="size-7 sm:size-8" />
               </span>
-              <h2 className="mt-5 font-heading text-lg font-bold">আমন্ত্রণ পাঠানো হয়েছে</h2>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+              <h2 className="mt-4 sm:mt-5 font-heading text-base sm:text-lg font-bold">আমন্ত্রণ পাঠানো হয়েছে</h2>
+              <p className="mt-2 text-xs sm:text-sm leading-relaxed text-muted-foreground">
                 এই মুফতির ইমেইলে পাসওয়ার্ড সেটআপ লিংকসহ ওয়েলকাম ইমেইল পাঠানো হয়েছে।
               </p>
-              <p className="mt-3 break-all rounded-lg border border-border bg-muted px-4 py-2.5 font-mono text-sm font-medium text-foreground">
+              <p className="mt-3 break-all rounded-lg border border-border bg-muted px-3 sm:px-4 py-2 sm:py-2.5 font-mono text-xs sm:text-sm font-medium text-foreground">
                 {createdUser.email}
               </p>
             </div>
 
-            <div className="mt-5 grid gap-2 rounded-lg border border-border bg-secondary/45 p-4 text-sm">
-              <p>
-                <span className="font-medium">নাম:</span> {createdUser.name}
-              </p>
-              <p>
-                <span className="font-medium">ভূমিকা:</span> মুফতি
-              </p>
+            <div className="mt-4 sm:mt-5 grid gap-2 rounded-lg border border-border bg-secondary/45 p-3 sm:p-4 text-xs sm:text-sm">
+              <p><span className="font-medium">নাম:</span> {createdUser.name}</p>
+              <p><span className="font-medium">ভূমিকা:</span> মুফতি</p>
               <p>
                 <span className="font-medium">স্ট্যাটাস:</span>{" "}
                 <span className="text-muted-foreground">
@@ -137,12 +131,12 @@ export function CreateMuftiDialog({
               </p>
             </div>
 
-            <div className="mt-5 grid grid-cols-2 gap-2">
+            <div className="mt-4 sm:mt-5 flex flex-col-reverse sm:grid sm:grid-cols-2 gap-2 sm:gap-2">
               <Button
                 type="button"
                 variant="outline"
                 onClick={handleCreateAnother}
-                className="h-10 w-full rounded-lg"
+                className="h-10 sm:h-11 w-full rounded-lg text-sm"
               >
                 <UserPlus className="size-4" />
                 আরেকজন
@@ -150,41 +144,28 @@ export function CreateMuftiDialog({
               <Button
                 type="button"
                 onClick={() => onOpenChange(false)}
-                className="h-10 w-full rounded-lg"
+                className="h-10 sm:h-11 w-full rounded-lg text-sm"
               >
                 সম্পন্ন
               </Button>
             </div>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="animate-fade-rise p-5 sm:p-6">
-            {/* <div className="mb-5 rounded-lg border border-border bg-secondary/45 p-4">
-              <div className="flex gap-3">
-                <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg bg-background text-primary">
-                  <Send className="size-4" />
-                </span>
-                <div className="min-w-0">
-                  <h2 className="font-heading text-base font-bold">মুফতি আমন্ত্রণ পাঠান</h2>
-                  <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                    আমন্ত্রিত মুফতি ইমেইল এবং পাসওয়ার্ড সেটআপ লিংক পাবেন
-                  </p>
-                </div>
-              </div>
-            </div> */}
-
-            {error ? (
-              <p className="mb-4 rounded-lg border border-destructive/25 bg-destructive/10 px-3.5 py-2.5 text-sm text-destructive">
+          /* Form state */
+          <form onSubmit={handleSubmit} className="animate-fade-rise p-4 sm:p-6">
+            {error && (
+              <p className="mb-4 rounded-lg border border-destructive/25 bg-destructive/10 px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm text-destructive">
                 {error}
               </p>
-            ) : null}
+            )}
 
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               <div className="space-y-1.5">
-                <label htmlFor="mufti-invite-name" className="text-sm font-medium text-foreground">
+                <label htmlFor="mufti-invite-name" className="text-xs sm:text-sm font-medium text-foreground">
                   পূর্ণ নাম
                 </label>
                 <div className="relative">
-                  <UserRound className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                  <UserRound className="pointer-events-none absolute left-3 sm:left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                   <input
                     id="mufti-invite-name"
                     type="text"
@@ -194,17 +175,17 @@ export function CreateMuftiDialog({
                     placeholder="মুফতির পূর্ণ নাম"
                     autoComplete="off"
                     autoFocus
-                    className="h-11 w-full rounded-lg border border-input bg-background px-10 text-sm outline-none transition placeholder:text-muted-foreground/70 disabled:cursor-not-allowed disabled:opacity-60 focus:border-ring focus:ring-2 focus:ring-ring/30"
+                    className="h-10 sm:h-11 w-full rounded-lg border border-input bg-background pl-9 sm:pl-10 pr-3 text-sm outline-none transition placeholder:text-muted-foreground/70 disabled:cursor-not-allowed disabled:opacity-60 focus:border-ring focus:ring-2 focus:ring-ring/30"
                   />
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label htmlFor="mufti-invite-email" className="text-sm font-medium text-foreground">
+                <label htmlFor="mufti-invite-email" className="text-xs sm:text-sm font-medium text-foreground">
                   ইমেইল ঠিকানা
                 </label>
                 <div className="relative">
-                  <Mail className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                  <Mail className="pointer-events-none absolute left-3 sm:left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                   <input
                     id="mufti-invite-email"
                     type="email"
@@ -213,28 +194,28 @@ export function CreateMuftiDialog({
                     disabled={formState === "submitting"}
                     placeholder="mufti@example.com"
                     autoComplete="off"
-                    className="h-11 w-full rounded-lg border border-input bg-background px-10 text-sm outline-none transition placeholder:text-muted-foreground/70 disabled:cursor-not-allowed disabled:opacity-60 focus:border-ring focus:ring-2 focus:ring-ring/30"
+                    className="h-10 sm:h-11 w-full rounded-lg border border-input bg-background pl-9 sm:pl-10 pr-3 text-sm outline-none transition placeholder:text-muted-foreground/70 disabled:cursor-not-allowed disabled:opacity-60 focus:border-ring focus:ring-2 focus:ring-ring/30"
                   />
                 </div>
               </div>
             </div>
 
-            <div className="mt-6 grid grid-cols-2 gap-2">
+            <div className="mt-5 sm:mt-6 flex flex-col-reverse sm:grid sm:grid-cols-2 gap-2">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => onOpenChange(false)}
                 disabled={formState === "submitting"}
-                className="h-11 w-full rounded-lg"
+                className="h-10 sm:h-11 w-full rounded-lg text-sm"
               >
                 বাতিল
               </Button>
               <Button
                 type="submit"
                 disabled={formState === "submitting"}
-                className="h-11 w-full rounded-lg text-base"
+                className="h-10 sm:h-11 w-full rounded-lg text-sm sm:text-base"
               >
-                <span className="inline-flex size-4 items-center justify-center">
+                <span className="inline-flex size-4 items-center justify-center mr-1.5">
                   {formState === "submitting" ? (
                     <Loader2 className="size-4 animate-spin" />
                   ) : (

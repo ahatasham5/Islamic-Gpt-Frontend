@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState, type FormEvent } from "react"
 import { BrandMark } from "@/components/brand-mark"
 import { StreamingAnswer } from "@/components/streaming-answer"
+import { FeedbackDialog } from "@/components/feedback-dialog"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { confidenceLabels, type DraftConversation, type ChatTurn, type ServerState } from "@/lib/app-types"
-import { ArrowUp, BookOpen, Check, Copy, FileSearch, Mail, Menu, PanelRightClose, PanelRightOpen, ShieldQuestion, Sparkles, User, Settings, LogOut, ChevronDown, ThumbsUp, ThumbsDown } from "lucide-react"
+import { ArrowUp, BookOpen, Check, Copy, FileSearch, Globe, Menu, PanelRightClose, PanelRightOpen, ShieldQuestion, Sparkles, User, Settings, LogOut, ChevronDown, ThumbsUp, ThumbsDown, MessageSquare, Mail } from "lucide-react"
 
-import type { AuthSession } from "@/lib/types"
+import type { AuthSession, BookInfo } from "@/lib/types"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -51,7 +52,12 @@ export function ChatMain({
   chatError,
   query,
   serverState,
+  webSearch,
+  selectedBookId,
+  books,
   onQueryChange,
+  onWebSearchChange,
+  onBookChange,
   onSubmit,
   onSelectTurn,
   onStreamDone,
@@ -73,7 +79,12 @@ export function ChatMain({
   chatError: string
   query: string
   serverState: ServerState
+  webSearch: boolean
+  selectedBookId: string | null
+  books: BookInfo[]
   onQueryChange: (value: string) => void
+  onWebSearchChange: (value: boolean) => void
+  onBookChange: (bookId: string | null) => void
   onSubmit: (event: FormEvent<HTMLFormElement>) => void
   onSelectTurn: (id: string) => void
   onStreamDone: () => void
@@ -81,7 +92,7 @@ export function ChatMain({
   onOpenSources?: () => void
   session: AuthSession
   onLogout: () => void
-  onFeedback?: (messageId: string, isGood: boolean) => void
+  onFeedback?: (messageId: string, isGood: boolean | null, text?: string) => Promise<void> | void
   onOpenSettings: (tab: "profile" | "security") => void
   hasMoreMessages?: boolean
   isLoadingMoreMessages?: boolean
@@ -124,41 +135,41 @@ export function ChatMain({
   return (
     <section className="relative flex h-full min-h-0 min-w-0 flex-col overflow-hidden bg-background">
       {/* Top bar */}
-      <header className="flex h-[72px] shrink-0 items-center justify-between gap-3 border-b border-border bg-card/60 px-4 backdrop-blur md:px-6">
-        <div className="flex min-w-0 items-center gap-3">
+      <header className="flex h-14 sm:h-16 md:h-[72px] shrink-0 items-center justify-between gap-2 sm:gap-3 border-b border-border bg-card/60 px-3 sm:px-4 backdrop-blur md:px-6">
+        <div className="flex min-w-0 items-center gap-2 sm:gap-3">
           <button
             type="button"
             onClick={onOpenMobileMenu}
-            className="inline-flex size-9 items-center justify-center rounded-lg border border-border text-muted-foreground lg:hidden"
+            className="inline-flex size-8 sm:size-9 items-center justify-center rounded-lg border border-border text-muted-foreground lg:hidden"
             aria-label="মেনু খুলুন"
           >
-            <Menu className="size-5" />
+            <Menu className="size-4 sm:size-5" />
           </button>
           <div className="min-w-0">
-            <p className="text-xs font-semibold uppercase tracking-wide text-primary">Chat</p>
-            <h1 className="truncate font-heading text-base font-bold leading-tight md:text-lg">
+            <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-wide text-primary">Chat</p>
+            <h1 className="truncate font-heading text-sm sm:text-base font-bold leading-tight md:text-lg">
               {conversation?.title || "নতুন আলোচনা"}
             </h1>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <span className="hidden items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground sm:inline-flex">
-            <span className={cn("size-2 rounded-full", serverDot[serverState])} />
-            {serverLabel[serverState]}
+        <div className="flex items-center gap-2 sm:gap-3">
+          <span className="hidden sm:inline-flex items-center gap-2 rounded-full border border-border bg-card px-2.5 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs text-muted-foreground">
+            <span className={cn("size-1.5 sm:size-2 rounded-full", serverDot[serverState])} />
+            <span className="hidden md:inline">{serverLabel[serverState]}</span>
           </span>
           
           <DropdownMenu>
             <DropdownMenuTrigger
-              className="flex items-center gap-2 rounded-full border border-border bg-card py-1.5 pl-1.5 pr-3 text-sm font-medium transition hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer"
+              className="flex items-center gap-1.5 sm:gap-2 rounded-full border border-border bg-card py-1 sm:py-1.5 pl-1 sm:pl-1.5 pr-2 sm:pr-3 text-xs sm:text-sm font-medium transition hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer"
             >
-              <span className="inline-flex size-6 items-center justify-center rounded-full bg-primary font-semibold text-primary-foreground text-xs">
+              <span className="inline-flex size-5 sm:size-6 items-center justify-center rounded-full bg-primary font-semibold text-primary-foreground text-[10px] sm:text-xs">
                 {session.user.name.slice(0, 1).toUpperCase()}
               </span>
-              <span className="hidden md:inline-block max-w-[100px] truncate text-foreground">
+              <span className="hidden md:inline-block max-w-[80px] lg:max-w-[100px] truncate text-foreground">
                 {session.user.name}
               </span>
-              <ChevronDown className="size-3.5 text-muted-foreground" />
+              <ChevronDown className="size-3 sm:size-3.5 text-muted-foreground" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuGroup>
@@ -192,28 +203,30 @@ export function ChatMain({
       </header>
 
       {/* Messages */}
-      <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-8 pt-6 md:px-6">
+      <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 sm:px-4 pb-6 sm:pb-8 pt-4 sm:pt-6 md:px-6">
         {!hasMessages ? (
-          <div className="mx-auto flex h-full max-w-xl flex-col items-center justify-center text-center">
-            <BrandMark size={68} />
-            <h2 className="mt-5 text-balance font-heading text-2xl font-bold md:text-3xl">
+          <div className="mx-auto flex h-full max-w-xl flex-col items-center justify-center text-center px-4">
+            <BrandMark size={52} className="sm:hidden" />
+            <BrandMark size={60} className="hidden sm:block md:hidden" />
+            <BrandMark size={68} className="hidden md:block" />
+            <h2 className="mt-4 sm:mt-5 text-balance font-heading text-xl sm:text-2xl font-bold md:text-3xl">
               কী জানতে চান?
             </h2>
-            <p className="mt-2 text-pretty leading-relaxed text-muted-foreground">
+            <p className="mt-1.5 sm:mt-2 text-pretty text-sm sm:text-base leading-relaxed text-muted-foreground">
               বাংলা বা ইংরেজিতে প্রশ্ন করুন। প্রতিটি উত্তরের সাথে নির্ভরযোগ্য
               তথ্যসূত্র দেখানো হবে।
             </p>
 
-            <div className="mt-8 grid w-full gap-2.5 sm:grid-cols-1">
+            <div className="mt-6 sm:mt-8 grid w-full gap-2 sm:gap-2.5 sm:grid-cols-1">
               {suggestions.map((text) => (
                 <button
                   key={text}
                   type="button"
                   onClick={() => handleSuggestion(text)}
-                  className="group flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 text-left text-sm transition hover:border-primary/40 hover:bg-accent/40"
+                  className="group flex items-center gap-2.5 sm:gap-3 rounded-lg sm:rounded-xl border border-border bg-card px-3 sm:px-4 py-2.5 sm:py-3 text-left text-xs sm:text-sm transition hover:border-primary/40 hover:bg-accent/40"
                 >
-                  <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-accent text-primary">
-                    <Sparkles className="size-4" />
+                  <span className="inline-flex size-7 sm:size-8 shrink-0 items-center justify-center rounded-lg bg-accent text-primary">
+                    <Sparkles className="size-3.5 sm:size-4" />
                   </span>
                   <span className="flex-1 font-medium text-foreground">{text}</span>
                 </button>
@@ -221,14 +234,14 @@ export function ChatMain({
             </div>
           </div>
         ) : (
-          <div className="mx-auto max-w-3xl space-y-10">
+          <div className="mx-auto max-w-3xl space-y-6 sm:space-y-8 md:space-y-10">
             {hasMoreMessages && (
-              <div className="flex justify-center pb-4">
+              <div className="flex justify-center pb-3 sm:pb-4">
                 <button
                   type="button"
                   onClick={onLoadMoreMessages}
                   disabled={isLoadingMoreMessages}
-                  className="rounded-full border border-border bg-card px-4 py-2 text-xs font-medium text-muted-foreground shadow-sm transition hover:bg-accent hover:text-foreground disabled:opacity-50"
+                  className="rounded-full border border-border bg-card px-3 sm:px-4 py-1.5 sm:py-2 text-[10px] sm:text-xs font-medium text-muted-foreground shadow-sm transition hover:bg-accent hover:text-foreground disabled:opacity-50"
                 >
                   {isLoadingMoreMessages ? "Loading previous..." : "Load previous messages"}
                 </button>
@@ -243,7 +256,7 @@ export function ChatMain({
                 isStreaming={streamingTurnId === turn.id}
                 onSelect={() => onSelectTurn(turn.id)}
                 onStreamDone={onStreamDone}
-                isMufti={session?.user?.role === "mufti" || session?.user?.role === "super_admin"}
+                isMufti={session?.user?.role === "mufti"}
                 onFeedback={onFeedback}
               />
             ))}
@@ -251,9 +264,11 @@ export function ChatMain({
             {pendingQuestion ? <UserQuestionBubble question={pendingQuestion} /> : null}
 
             {isAsking ? (
-              <div className="animate-fade-rise flex items-start gap-3">
-                <BrandMark size={36} />
-                <div className="flex items-center gap-2 rounded-2xl rounded-tl-sm border border-border bg-card px-4 py-3 text-sm text-muted-foreground shadow-sm">
+              <div className="animate-fade-rise flex items-start gap-2 sm:gap-3">
+                <BrandMark size={28} className="sm:hidden" />
+                <BrandMark size={32} className="hidden sm:block md:hidden" />
+                <BrandMark size={36} className="hidden md:block" />
+                <div className="flex items-center gap-1.5 sm:gap-2 rounded-xl sm:rounded-2xl rounded-tl-sm border border-border bg-card px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-muted-foreground shadow-sm">
                   চিন্তা করছি
                   <span className="flex items-center gap-1" aria-hidden="true">
                     <span className="thinking-dot" />
@@ -268,34 +283,114 @@ export function ChatMain({
       </div>
 
       {/* Composer */}
-      <div className="sticky bottom-0 z-20 shrink-0 bg-gradient-to-b from-background to-card/30 px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-4 md:px-6">
+      <div className="sticky bottom-0 z-20 shrink-0 bg-gradient-to-b from-background to-card/30 px-3 sm:px-4 pb-3 sm:pb-[calc(1rem+env(safe-area-inset-bottom))] pt-3 sm:pt-4 md:px-6">
         <form onSubmit={onSubmit} className="mx-auto max-w-3xl">
           {chatError ? (
-            <p className="mb-3 rounded-xl border border-destructive/30 bg-destructive/10 px-3.5 py-2.5 text-sm text-destructive">
+            <p className="mb-2 sm:mb-3 rounded-lg sm:rounded-xl border border-destructive/30 bg-destructive/10 px-2.5 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm text-destructive">
               {chatError}
             </p>
           ) : null}
 
-          <div className="flex items-end gap-2 rounded-xl border border-border bg-card p-2 shadow-sm transition focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/20">
-            <textarea
-              ref={textareaRef}
-              dir="auto"
-              value={query}
-              onChange={(e) => onQueryChange(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="আপনার প্রশ্ন লিখুন..."
-              className="min-h-10 max-h-40 min-w-0 flex-1 resize-none overflow-y-auto bg-transparent px-2.5 py-2 text-sm leading-relaxed outline-none placeholder:text-muted-foreground"
-            />
-            <button
-              type="submit"
-              disabled={isAsking || serverState === "offline" || query.trim().length < 5}
-              className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
-              aria-label="প্রশ্ন পাঠান"
-            >
-              <ArrowUp className="size-5" />
-            </button>
+          <div className="rounded-lg sm:rounded-xl border border-border bg-card shadow-sm transition focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/20">
+            {/* Textarea row */}
+            <div className="flex items-end gap-1.5 sm:gap-2 p-1.5 sm:p-2">
+              <textarea
+                ref={textareaRef}
+                dir="auto"
+                value={query}
+                onChange={(e) => onQueryChange(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="আপনার প্রশ্ন লিখুন..."
+                className="min-h-9 sm:min-h-10 max-h-32 sm:max-h-40 min-w-0 flex-1 resize-none overflow-y-auto bg-transparent px-2 sm:px-2.5 py-1.5 sm:py-2 text-xs sm:text-sm leading-relaxed outline-none placeholder:text-muted-foreground"
+              />
+              <button
+                type="submit"
+                disabled={isAsking || serverState === "offline" || query.trim().length < 5}
+                className="inline-flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-lg sm:rounded-xl bg-primary text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+                aria-label="প্রশ্ন পাঠান"
+              >
+                <ArrowUp className="size-4 sm:size-5" />
+              </button>
+            </div>
+
+            {/* Options row */}
+            <div className="flex items-center gap-1.5 sm:gap-2 border-t border-border/60 px-2 sm:px-3 py-1.5 sm:py-2 overflow-x-auto">
+              {/* Web search toggle */}
+              <button
+                type="button"
+                onClick={() => onWebSearchChange(!webSearch)}
+                className={cn(
+                  "inline-flex shrink-0 items-center gap-1 sm:gap-1.5 rounded-md border px-2 py-1 text-[10px] sm:text-xs font-medium transition",
+                  webSearch
+                    ? "border-primary/40 bg-primary/10 text-primary"
+                    : "border-border bg-transparent text-muted-foreground hover:bg-accent/40 hover:text-foreground"
+                )}
+                title="ওয়েব থেকে ফতোয়া খুঁজুন"
+              >
+                <Globe className="size-3 sm:size-3.5" />
+                <span>Web Search</span>
+                {webSearch && <span className="ml-0.5 size-1.5 rounded-full bg-primary inline-block" />}
+              </button>
+
+              {/* Book selector — hidden when web search is on */}
+              {!webSearch && books.length > 0 && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger
+                    className={cn(
+                      "inline-flex shrink-0 items-center gap-1 sm:gap-1.5 rounded-md border px-2 py-1 text-[10px] sm:text-xs font-medium transition focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
+                      selectedBookId
+                        ? "border-primary/40 bg-primary/10 text-primary"
+                        : "border-border bg-transparent text-muted-foreground hover:bg-accent/40 hover:text-foreground"
+                    )}
+                    title="নির্দিষ্ট কিতাব নির্বাচন করুন"
+                  >
+                    <BookOpen className="size-3 sm:size-3.5 shrink-0" />
+                    <span className="max-w-[120px] sm:max-w-[180px] truncate">
+                      {selectedBookId
+                        ? (books.find((b) => b.book_id === selectedBookId)?.book_title ||
+                           books.find((b) => b.book_id === selectedBookId)?.file_name ||
+                           "কিতাব")
+                        : "সব কিতাব"}
+                    </span>
+                    <ChevronDown className="size-3 shrink-0 opacity-60" />
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    align="start"
+                    side="top"
+                    className="w-64 sm:w-72 max-h-60 overflow-y-auto"
+                  >
+                    <DropdownMenuItem
+                      className="cursor-pointer text-xs sm:text-sm"
+                      onClick={() => onBookChange(null)}
+                    >
+                      <span className={cn("flex-1", !selectedBookId && "font-semibold text-primary")}>
+                        সব কিতাব
+                      </span>
+                      {!selectedBookId && <Check className="size-3.5 text-primary ml-2" />}
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    {books.map((b) => (
+                      <DropdownMenuItem
+                        key={b.book_id}
+                        className="cursor-pointer text-xs sm:text-sm"
+                        onClick={() => onBookChange(b.book_id)}
+                      >
+                        <span className={cn(
+                          "flex-1 truncate",
+                          selectedBookId === b.book_id && "font-semibold text-primary"
+                        )}>
+                          {b.book_title || b.file_name}
+                        </span>
+                        {selectedBookId === b.book_id && <Check className="size-3.5 text-primary ml-2 shrink-0" />}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+            </div>
           </div>
-          <p className="mt-2 px-1 text-center text-xs text-muted-foreground">
+
+          <p className="mt-1.5 sm:mt-2 px-1 text-center text-[10px] sm:text-xs text-muted-foreground">
             Fatwa GPT ভুল করতে পারে — গুরুত্বপূর্ণ বিষয়ে আলেমের পরামর্শ নিন।
           </p>
         </form>
@@ -315,25 +410,25 @@ function UserQuestionBubble({ question }: { question: string }) {
 
   return (
     <div className="flex justify-end group">
-      <div className="flex flex-col items-end gap-1 max-w-[85%] sm:max-w-[75%]">
+      <div className="flex flex-col items-end gap-1 max-w-[90%] sm:max-w-[85%] md:max-w-[75%]">
         <div
           dir="auto"
-          className="rounded-3xl rounded-tr-sm bg-secondary px-5 py-3 text-base leading-relaxed text-foreground text-justify"
+          className="rounded-2xl sm:rounded-3xl rounded-tr-sm bg-secondary px-3.5 sm:px-4 md:px-5 py-2.5 sm:py-3 text-sm sm:text-base leading-relaxed text-foreground text-justify"
         >
           {question}
         </div>
         <button
           onClick={handleCopy}
-          className="inline-flex items-center gap-1.5 px-2 py-1 text-[11px] font-medium text-muted-foreground opacity-0 transition-opacity hover:text-foreground group-hover:opacity-100"
+          className="inline-flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-2 py-0.5 sm:py-1 text-[10px] sm:text-[11px] font-medium text-muted-foreground opacity-0 transition-opacity hover:text-foreground group-hover:opacity-100"
           title="প্রশ্ন কপি করুন"
         >
           {copied ? (
             <>
-              <Check className="size-3" /> কপি হয়েছে
+              <Check className="size-2.5 sm:size-3" /> কপি হয়েছে
             </>
           ) : (
             <>
-              <Copy className="size-3" /> কপি করুন
+              <Copy className="size-2.5 sm:size-3" /> কপি করুন
             </>
           )}
         </button>
@@ -357,9 +452,13 @@ function TurnBlock({
   onSelect: () => void
   onStreamDone: () => void
   isMufti?: boolean
-  onFeedback?: (messageId: string, isGood: boolean) => void
+  onFeedback?: (messageId: string, isGood: boolean | null, text?: string) => Promise<void> | void
 }) {
   const [copied, setCopied] = useState(false)
+  const [feedbackState, setFeedbackState] = useState<{ open: boolean; isGood: boolean | null }>({
+    open: false,
+    isGood: null,
+  })
 
   function handleCopyAnswer() {
     navigator.clipboard.writeText(turn.response.answer)
@@ -372,53 +471,55 @@ function TurnBlock({
   const isThumbsDown = userFeedback?.is_good === false;
 
   return (
-    <article className="animate-fade-rise space-y-6">
+    <article className="animate-fade-rise space-y-4 sm:space-y-5 md:space-y-6">
       {/* User question */}
       <UserQuestionBubble question={turn.question} />
 
       {/* Assistant answer */}
-      <div className="flex items-start gap-4">
-        <div className="mt-1 shrink-0">
-          <BrandMark size={32} />
+      <div className="flex items-start gap-2.5 sm:gap-3 md:gap-4">
+        <div className="mt-0.5 sm:mt-1 shrink-0">
+          <BrandMark size={24} className="sm:hidden" />
+          <BrandMark size={28} className="hidden sm:block md:hidden" />
+          <BrandMark size={32} className="hidden md:block" />
         </div>
-        <div className="min-w-0 flex-1 space-y-4">
+        <div className="min-w-0 flex-1 space-y-3 sm:space-y-4">
           <StreamingAnswer
             shouldStream={isStreaming}
             text={turn.response.answer}
             onDone={onStreamDone}
           />
 
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             <button
               type="button"
               onClick={handleCopyAnswer}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-semibold text-muted-foreground transition hover:bg-accent/40"
+              className="inline-flex items-center gap-1 sm:gap-1.5 rounded-md sm:rounded-lg border border-border bg-card px-2 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs font-semibold text-muted-foreground transition hover:bg-accent/40"
               title="উত্তর কপি করুন"
             >
               {copied ? (
                 <>
-                  <Check className="size-3.5" />
-                  কপি হয়েছে
+                  <Check className="size-3 sm:size-3.5" />
+                  <span className="hidden xs:inline">কপি হয়েছে</span>
                 </>
               ) : (
                 <>
-                  <Copy className="size-3.5" />
-                  কপি করুন
+                  <Copy className="size-3 sm:size-3.5" />
+                  <span className="hidden xs:inline">কপি করুন</span>
                 </>
               )}
             </button>
             <Badge
               className={cn(
-                "gap-1.5 border-0 text-xs font-medium",
+                "gap-1 sm:gap-1.5 border-0 text-[10px] sm:text-xs font-medium",
                 confidenceStyles[turn.response.confidence],
               )}
             >
-              <ShieldQuestion className="size-3.5" />
+              <ShieldQuestion className="size-3 sm:size-3.5" />
               {confidenceLabels[turn.response.confidence]}
             </Badge>
             {turn.response.madhabs?.length ? (
-              <Badge variant="secondary" className="gap-1.5 font-normal">
-                <BookOpen className="size-3.5 text-primary" />
+              <Badge variant="secondary" className="gap-1 sm:gap-1.5 font-normal text-[10px] sm:text-xs">
+                <BookOpen className="size-3 sm:size-3.5 text-primary" />
                 {turn.response.madhabs.join(", ")}
               </Badge>
             ) : null}
@@ -426,44 +527,49 @@ function TurnBlock({
               type="button"
               onClick={onSelect}
               className={cn(
-                "inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm font-semibold transition",
+                "inline-flex items-center gap-1.5 sm:gap-2 rounded-md sm:rounded-lg border px-2 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-sm font-semibold transition",
                 isSelected
                   ? "border-primary/40 bg-accent/60 text-primary shadow-sm hover:bg-accent"
                   : "border-border bg-card text-muted-foreground hover:bg-accent/40",
               )}
             >
-              <FileSearch className="size-4" />
-              তথ্যসূত্র দেখুন ({turn.response.sources?.length ?? 0})
+              <FileSearch className="size-3 sm:size-4" />
+              <span className="hidden xs:inline">তথ্যসূত্র দেখুন</span>
+              <span className="xs:hidden">সূত্র</span>
+              ({turn.response.sources?.length ?? 0})
             </button>
             {isMufti && onFeedback && !turn.id.startsWith("turn") && (
-              <div className="flex items-center gap-1 border-l border-border pl-3 ml-1">
+              <div className="flex items-center gap-1 border-l border-border pl-2 sm:pl-3 ml-1">
                 <button
                   type="button"
-                  onClick={() => onFeedback(turn.id, true)}
+                  onClick={() => setFeedbackState({ open: true, isGood: userFeedback ? userFeedback.is_good : null })}
                   className={cn(
-                    "inline-flex size-8 items-center justify-center rounded-lg border border-border bg-card transition hover:bg-accent/40",
-                    isThumbsUp && "text-green-600 border-green-600/40 bg-green-50"
+                    "inline-flex items-center gap-1 sm:gap-1.5 rounded-md sm:rounded-lg border px-2 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs font-semibold transition hover:bg-accent/40",
+                    isThumbsUp ? "border-green-600/40 bg-green-50 text-green-700" :
+                    isThumbsDown ? "border-red-600/40 bg-red-50 text-red-700" :
+                    "border-border bg-card text-muted-foreground"
                   )}
-                  title="সঠিক উত্তর"
+                  title="মতামত দিন"
                 >
-                  <ThumbsUp className="size-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => onFeedback(turn.id, false)}
-                  className={cn(
-                    "inline-flex size-8 items-center justify-center rounded-lg border border-border bg-card transition hover:bg-accent/40",
-                    isThumbsDown && "text-red-600 border-red-600/40 bg-red-50"
-                  )}
-                  title="ভুল উত্তর"
-                >
-                  <ThumbsDown className="size-4" />
+                  <MessageSquare className="size-3 sm:size-3.5" />
+                  <span className="hidden sm:inline">মতামত দিন</span>
                 </button>
               </div>
             )}
           </div>
         </div>
       </div>
+
+      {isMufti && onFeedback && !turn.id.startsWith("turn") && (
+        <FeedbackDialog
+          open={feedbackState.open}
+          onOpenChange={(open) => setFeedbackState((s) => ({ ...s, open }))}
+          isGoodInitial={feedbackState.isGood}
+          onSubmit={async (isGood, text) => {
+            await onFeedback(turn.id, isGood, text)
+          }}
+        />
+      )}
     </article>
   )
 }

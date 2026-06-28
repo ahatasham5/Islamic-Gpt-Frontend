@@ -6,6 +6,7 @@ import { useHealth } from "@/hooks/use-health"
 import { useAuthContext } from "@/lib/auth-context"
 import { useSessions } from "@/hooks/use-sessions"
 import { sessionsApi } from "@/lib/api/sessions"
+import { booksApi } from "@/lib/api/books"
 import type { DraftConversation, ViewMode } from "@/lib/app-types"
 import { createId } from "@/lib/format"
 import type { BookInfo, Source } from "@/lib/types"
@@ -13,6 +14,8 @@ import { ChatSidebar } from "@/components/chat-sidebar"
 import { ChatMain } from "@/components/chat-main"
 import { SourcesPanel } from "@/components/sources-panel"
 import { BookManager } from "@/components/book-manager"
+import { AdminFeedbacks } from "@/components/admin-feedbacks"
+import { AdminUsers } from "@/components/admin-users"
 import { SettingsDialog } from "@/components/settings-dialog"
 import { ConfirmDialog } from "@/components/confirm-dialog"
 import { CreateMuftiDialog } from "@/components/create-mufti-panel"
@@ -38,6 +41,8 @@ export function ChatApp() {
   const health = useHealth(Boolean(session))
   const chat = useChat()
   const bookState = useBooks(Boolean(session && canViewBooks))
+  // All authenticated users need the book list for the chat book selector
+  const [allBooks, setAllBooks] = useState<BookInfo[]>([])
   const sessionState = useSessions(Boolean(session))
 
   const [conversations, setConversations] = useState<DraftConversation[]>(initialConversations)
@@ -48,10 +53,10 @@ export function ChatApp() {
     if (typeof window !== "undefined") {
       const urlParams = new URLSearchParams(window.location.search)
       const view = urlParams.get("view") as ViewMode
-      if (view === "books" || view === "chat") return view
+      if (view === "books" || view === "chat" || view === "admin_feedbacks" || view === "admin_users") return view
       
       const saved = sessionStorage.getItem("viewMode") as ViewMode
-      if (saved === "books" || saved === "chat") return saved
+      if (saved === "books" || saved === "chat" || saved === "admin_feedbacks" || saved === "admin_users") return saved
     }
     return "chat"
   })
@@ -85,6 +90,16 @@ export function ChatApp() {
   const [bookToDelete, setBookToDelete] = useState<BookInfo | null>(null)
   const [sessionToDelete, setSessionToDelete] = useState<string | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
+
+  // Chat options
+  const [webSearch, setWebSearch] = useState(false)
+  const [selectedBookId, setSelectedBookId] = useState<string | null>(null)
+
+  // Load full book list for the chat book selector (all roles)
+  useEffect(() => {
+    if (!session) return
+    booksApi.list(1, 100).then((res) => setAllBooks(res.books)).catch(() => {})
+  }, [session])
 
   const activeConversation = useMemo(
     () => conversations.find((c) => c.id === activeConversationId) ?? conversations[0],
@@ -134,6 +149,7 @@ export function ChatApp() {
   }, [activeConversation, selectedTurnId])
 
   function handleLogout() {
+    sessionStorage.removeItem("activeChat")
     logout()
     router.replace("/login")
   }
@@ -216,11 +232,6 @@ export function ChatApp() {
     setMobileNavOpen(false)
   }
 
-  function handleOpenMuftiManagement() {
-    setMobileNavOpen(false)
-    setIsCreateMuftiOpen(true)
-  }
-
   async function handleLoadMoreMessages() {
     if (!activeConversationId || activeConversationId.startsWith("local") || activeConversationId.startsWith("chat")) return
     
@@ -281,12 +292,14 @@ export function ChatApp() {
       const isLocal = targetConversationId.startsWith("local") || targetConversationId.startsWith("chat");
       const response = await chat.ask({
         query: trimmedQuery,
-        book_id: null,
-        top_k: 5,
+        book_id: webSearch ? null : (selectedBookId ?? null),
+        top_k: 15,
         session_id: isLocal ? undefined : Number(targetConversationId),
+        web_search: webSearch,
       })
+      const newTurnId = response.message_id ? String(response.message_id) : createId("turn")
       const turn = {
-        id: createId("turn"),
+        id: newTurnId,
         question: trimmedQuery,
         response,
         createdAt: new Date().toISOString(),
@@ -324,9 +337,9 @@ export function ChatApp() {
     }
   }
 
-  async function handleFeedback(messageId: string, isGood: boolean) {
+  async function handleFeedback(messageId: string, isGood: boolean | null, text?: string) {
     try {
-      await sessionsApi.submitFeedback(Number(messageId), isGood)
+      await sessionsApi.submitFeedback(Number(messageId), isGood, text)
       // Update local state to reflect the feedback instantly if needed,
       // or rely on reload. For now, let's just do a optimistic update:
       setConversations(current => current.map(c => ({
@@ -337,8 +350,9 @@ export function ChatApp() {
             const existingIdx = feedbacks.findIndex(f => f.mufti_name === session?.user.name)
             if (existingIdx >= 0) {
               feedbacks[existingIdx].is_good = isGood
+              feedbacks[existingIdx].feedback_text = text || null
             } else {
-              feedbacks.push({ is_good: isGood, feedback_text: null, mufti_name: session?.user.name })
+              feedbacks.push({ is_good: isGood, feedback_text: text || null, mufti_name: session?.user.name })
             }
             return { ...t, feedbacks }
           }
@@ -419,7 +433,15 @@ export function ChatApp() {
       onNewChat={handleNewChat}
       onSelectConversation={handleSelectConversation}
       onOpenBooks={handleOpenBooks}
-      onOpenMuftiManagement={handleOpenMuftiManagement}
+      onOpenMuftiManagement={() => setIsCreateMuftiOpen(true)}
+      onOpenAdminFeedbacks={() => {
+        setViewMode("admin_feedbacks")
+        onCloseMobile?.()
+      }}
+      onOpenAdminUsers={() => {
+        setViewMode("admin_users")
+        onCloseMobile?.()
+      }}
       isCreateMuftiOpen={isCreateMuftiOpen}
       onLogout={handleLogout}
       onCloseMobile={onCloseMobile}
@@ -442,8 +464,8 @@ export function ChatApp() {
   return (
     <div
       className={cn(
-        "grid h-dvh min-h-0 grid-cols-1 overflow-hidden lg:grid-cols-[300px_minmax(0,1fr)]",
-        viewMode === "chat" && desktopSourcesOpen && "xl:grid-cols-[300px_minmax(0,1fr)_340px]"
+        "grid h-dvh min-h-0 grid-cols-1 overflow-hidden lg:grid-cols-[280px_minmax(0,1fr)] xl:grid-cols-[300px_minmax(0,1fr)]",
+        viewMode === "chat" && desktopSourcesOpen && "2xl:grid-cols-[300px_minmax(0,1fr)_340px]"
       )}
     >
       <aside className="hidden min-h-0 overflow-hidden border-r border-sidebar-border lg:block">
@@ -451,7 +473,7 @@ export function ChatApp() {
       </aside>
 
       <Sheet open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
-        <SheetContent side="left" className="h-dvh w-[300px] overflow-hidden p-0">
+        <SheetContent side="left" className="h-dvh w-[280px] sm:w-[300px] overflow-hidden p-0">
           {sidebar(() => setMobileNavOpen(false))}
         </SheetContent>
       </Sheet>
@@ -478,6 +500,26 @@ export function ChatApp() {
             setIsSettingsOpen(true)
           }}
         />
+      ) : viewMode === "admin_feedbacks" && session.user.role === "super_admin" ? (
+        <AdminFeedbacks
+          session={session}
+          onOpenMobileMenu={() => setMobileNavOpen(true)}
+          onOpenSettings={(tab) => {
+            setSettingsTab(tab)
+            setIsSettingsOpen(true)
+          }}
+          onLogout={handleLogout}
+        />
+      ) : viewMode === "admin_users" && session.user.role === "super_admin" ? (
+        <AdminUsers
+          session={session}
+          onOpenMobileMenu={() => setMobileNavOpen(true)}
+          onOpenSettings={(tab) => {
+            setSettingsTab(tab)
+            setIsSettingsOpen(true)
+          }}
+          onLogout={handleLogout}
+        />
       ) : (
         <ChatMain
           conversation={activeConversation}
@@ -491,12 +533,17 @@ export function ChatApp() {
           query={query}
           serverState={health.serverState}
           session={session}
+          webSearch={webSearch}
+          selectedBookId={selectedBookId}
+          books={allBooks}
           onQueryChange={setQuery}
+          onWebSearchChange={setWebSearch}
+          onBookChange={setSelectedBookId}
           onSubmit={handleAsk}
           onLogout={handleLogout}
           onSelectTurn={(id) => {
             setSelectedTurnId(id)
-            if (window.innerWidth >= 1280) {
+            if (window.innerWidth >= 1536) {
               setDesktopSourcesOpen(true)
             } else {
               setMobileSourcesOpen(true)
@@ -517,12 +564,12 @@ export function ChatApp() {
       )}
 
       {viewMode === "chat" && desktopSourcesOpen ? (
-        <aside className="hidden min-h-0 overflow-hidden border-l border-border xl:block">
+        <aside className="hidden min-h-0 overflow-hidden border-l border-border 2xl:block">
           <SourcesPanel selectedTurn={selectedTurn} onViewThinking={setThinkingSource} onClose={() => setDesktopSourcesOpen(false)} />
         </aside>
       ) : null}
       <Sheet open={mobileSourcesOpen} onOpenChange={setMobileSourcesOpen}>
-        <SheetContent side="right" className="h-dvh w-[340px] max-w-[88vw] overflow-hidden p-0">
+        <SheetContent side="right" className="h-dvh w-[300px] sm:w-[340px] max-w-[88vw] overflow-hidden p-0">
           <SourcesPanel selectedTurn={selectedTurn} onViewThinking={setThinkingSource} />
         </SheetContent>
       </Sheet>

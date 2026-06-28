@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react"
 import { authApi } from "@/lib/api/auth"
 import { usersApi } from "@/lib/api/users"
-import { getApiErrorMessage, setAuthToken } from "@/lib/http"
+import { getApiErrorMessage } from "@/lib/http"
 import type { AuthSession, Token, UserCreate, UserLogin, VerifyOTP } from "@/lib/types"
 
 const STORAGE_KEY = "islamic-gpt-auth-session"
@@ -18,7 +18,8 @@ function saveSession(session: AuthSession | null) {
   if (typeof window === "undefined") return
 
   if (session) {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(session))
+    const { accessToken, ...safeSession } = session as any
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(safeSession))
   } else {
     window.localStorage.removeItem(STORAGE_KEY)
   }
@@ -28,8 +29,8 @@ export function useAuth() {
   const [session, setSession] = useState<AuthSession | null>(null)
   const [isRestoring, setIsRestoring] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isVerifying, setIsVerifying] = useState(false)
-  const [isResending, setIsResending] = useState(false)
+  // const [isVerifying, setIsVerifying] = useState(false)
+  // const [isResending, setIsResending] = useState(false)
   const [error, setError] = useState("")
 
   useEffect(() => {
@@ -40,8 +41,7 @@ export function useAuth() {
         if (stored) {
           const parsed = JSON.parse(stored) as AuthSession
 
-          if (parsed?.accessToken && parsed?.user?.email) {
-            setAuthToken(parsed.accessToken)
+          if (parsed?.user?.email) {
             try {
               const freshUser = await usersApi.getMe()
               const freshSession = { ...parsed, user: freshUser }
@@ -50,18 +50,25 @@ export function useAuth() {
             } catch (err) {
               setSession(null)
               saveSession(null)
-              setAuthToken(null)
             }
           } else {
             setSession(null)
             saveSession(null)
-            setAuthToken(null)
+          }
+        } else {
+          // If no localStorage, maybe the HTTP-only cookie is still valid
+          try {
+            const freshUser = await usersApi.getMe()
+            const freshSession = { user: freshUser, tokenType: "bearer" } as AuthSession
+            setSession(freshSession)
+            saveSession(freshSession)
+          } catch (err) {
+            // Not logged in
           }
         }
       } catch {
         setSession(null)
         saveSession(null)
-        setAuthToken(null)
       } finally {
         setIsRestoring(false)
       }
@@ -76,14 +83,12 @@ export function useAuth() {
 
     try {
       const token = await authApi.login(payload)
-      setAuthToken(token.access_token)
       
       const freshUser = await usersApi.getMe()
       const nextSession: AuthSession = {
-        accessToken: token.access_token,
         tokenType: token.token_type,
         user: freshUser,
-      }
+      } as AuthSession
 
       setSession(nextSession)
       saveSession(nextSession)
@@ -98,57 +103,59 @@ export function useAuth() {
     }
   }, [])
 
-  const signup = useCallback(async (payload: UserCreate) => {
-    setError("")
-    setIsSubmitting(true)
+  // const signup = useCallback(async (payload: UserCreate) => {
+  //   setError("")
+  //   setIsSubmitting(true)
 
+  //   try {
+  //     const response = await authApi.signup(payload)
+  //     return response
+  //   } catch (error) {
+  //     const message = getApiErrorMessage(error)
+  //     setError(message)
+  //     throw error
+  //   } finally {
+  //     setIsSubmitting(false)
+  //   }
+  // }, [])
+
+  // const verifyOtp = useCallback(async (payload: VerifyOTP) => {
+  //   setError("")
+  //   setIsVerifying(true)
+
+  //   try {
+  //     return await authApi.verifyOtp(payload)
+  //   } catch (error) {
+  //     const message = getApiErrorMessage(error)
+  //     setError(message)
+  //     throw error
+  //   } finally {
+  //     setIsVerifying(false)
+  //   }
+  // }, [])
+
+  // const resendOtp = useCallback(async (email: string) => {
+  //   setError("")
+  //   setIsResending(true)
+
+  //   try {
+  //     const response = await authApi.resendOtp({ email })
+  //     return response
+  //   } catch (error) {
+  //     const message = getApiErrorMessage(error)
+  //     setError(message)
+  //     throw error
+  //   } finally {
+  //     setIsResending(false)
+  //   }
+  // }, [])
+
+  const logout = useCallback(async () => {
     try {
-      const response = await authApi.signup(payload)
-      return response
-    } catch (error) {
-      const message = getApiErrorMessage(error)
-      setError(message)
-      throw error
-    } finally {
-      setIsSubmitting(false)
-    }
-  }, [])
-
-  const verifyOtp = useCallback(async (payload: VerifyOTP) => {
-    setError("")
-    setIsVerifying(true)
-
-    try {
-      return await authApi.verifyOtp(payload)
-    } catch (error) {
-      const message = getApiErrorMessage(error)
-      setError(message)
-      throw error
-    } finally {
-      setIsVerifying(false)
-    }
-  }, [])
-
-  const resendOtp = useCallback(async (email: string) => {
-    setError("")
-    setIsResending(true)
-
-    try {
-      const response = await authApi.resendOtp({ email })
-      return response
-    } catch (error) {
-      const message = getApiErrorMessage(error)
-      setError(message)
-      throw error
-    } finally {
-      setIsResending(false)
-    }
-  }, [])
-
-  const logout = useCallback(() => {
+      await fetch('/api/auth/logout', { method: 'POST' })
+    } catch (err) {}
     setSession(null)
     setError("")
-    setAuthToken(null)
     saveSession(null)
   }, [])
 
@@ -186,14 +193,14 @@ export function useAuth() {
     session,
     isRestoring,
     isSubmitting,
-    isVerifying,
-    isResending,
+    // isVerifying,
+    // isResending,
     error,
     clearError: () => setError(""),
     login,
-    signup,
-    verifyOtp,
-    resendOtp,
+    // signup,
+    // verifyOtp,
+    // resendOtp,
     logout,
     forgotPassword,
     fetchSession,

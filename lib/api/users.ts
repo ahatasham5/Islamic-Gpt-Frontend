@@ -1,5 +1,5 @@
 import { apiRequest } from "@/lib/http"
-import type { UserResponse, ForgotPassword, ResetPassword } from "@/lib/types"
+import type { UserResponse, ForgotPassword, ResetPassword, ResetPasswordResponse } from "@/lib/types"
 
 export const usersApi = {
   getMe() {
@@ -18,7 +18,7 @@ export const usersApi = {
   },
 
   resetPassword(payload: ResetPassword) {
-    return apiRequest<string>({
+    return apiRequest<ResetPasswordResponse>({
       method: "POST",
       url: "/users/reset-password",
       data: payload,

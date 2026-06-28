@@ -44,7 +44,7 @@ export function StreamingAnswer({
   }, [onDone, shouldStream, text])
 
   return (
-    <div className="answer-prose text-[0.95rem] text-foreground text-justify" dir="auto">
+    <div className="answer-prose text-sm sm:text-[0.95rem] leading-relaxed sm:leading-7 text-foreground text-justify" dir="auto">
       {renderFormattedAnswer(visibleText)}
       {shouldStream ? <span className="stream-caret" aria-hidden="true" /> : null}
     </div>

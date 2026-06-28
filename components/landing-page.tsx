@@ -34,6 +34,14 @@ const translations = {
     step2Desc: "আপনার ইসলামিক প্রশ্ন বাংলা বা ইংরেজিতে লিখুন",
     step3: "উত্তর পান",
     step3Desc: "রেফারেন্স সহ বিস্তারিত এবং নির্ভরযোগ্য উত্তর পান",
+    footerTagline: "বিশ্বাসযোগ্য ইসলামিক জ্ঞান যাচাইকৃত প্রবেশাধিকারে",
+    footerCompany: "কোম্পানি",
+    footerAbout: "আমাদের সম্পর্কে",
+    footerContact: "যোগাযোগ",
+    footerBlog: "ব্লগ",
+    footerLegal: "আইনি",
+    footerPrivacy: "প্রাইভেসি পলিসি",
+    footerTerms: "টার্মস অফ সার্ভিস",
   },
   en: {
     tagline: "AI-Powered Islamic Knowledge Assistant",
@@ -61,6 +69,14 @@ const translations = {
     step2Desc: "Write your Islamic question in Bengali or English",
     step3: "Get Answers",
     step3Desc: "Receive detailed and reliable answers with references",
+    footerTagline: "Trusted Islamic knowledge through verified access",
+    footerCompany: "Company",
+    footerAbout: "About Us",
+    footerContact: "Contact",
+    footerBlog: "Blog",
+    footerLegal: "Legal",
+    footerPrivacy: "Privacy Policy",
+    footerTerms: "Terms of Service",
   },
 }
 
@@ -74,23 +90,24 @@ export function LandingPage() {
     <div className="min-h-screen bg-gradient-to-b from-[#E8F5E6] to-white">
       {/* Header */}
       <header className="sticky top-0 z-50 border-b border-gray-200 bg-white/80 backdrop-blur-lg">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 md:px-6 md:py-4">
-          <div className="flex items-center gap-2 md:gap-3">
-            <BrandMark size={32} className="md:hidden" />
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 md:px-8 lg:px-6 md:py-4">
+          <div className="flex items-center gap-2 sm:gap-2.5 md:gap-3">
+            <BrandMark size={28} className="sm:hidden" />
+            <BrandMark size={32} className="hidden sm:block md:hidden" />
             <BrandMark size={40} className="hidden md:block" />
             <div className="leading-tight">
-              <p className="text-[10px] text-gray-600 md:text-xs">As-Sunnah Foundation</p>
-              <p className="font-heading text-sm font-bold text-gray-900 md:text-lg">Islamic GPT</p>
+              <p className="text-[9px] sm:text-[10px] text-gray-600 md:text-xs">As-Sunnah Foundation</p>
+              <p className="font-heading text-xs sm:text-sm font-bold text-gray-900 md:text-base lg:text-lg">Islamic GPT</p>
             </div>
           </div>
           
           {/* Desktop Navigation */}
-          <nav className="hidden items-center gap-8 md:flex">
+          <nav className="hidden items-center gap-4 lg:gap-8 md:flex">
             {/* Language Toggle */}
-            <div className="flex h-11 items-center gap-1 rounded border-2 border-gray-300 p-1">
+            <div className="flex h-10 lg:h-11 items-center gap-1 rounded border-2 border-gray-300 p-1">
               <button
                 onClick={() => setLanguage("bn")}
-                className={`rounded px-3 py-2 text-sm font-medium transition cursor-pointer ${
+                className={`rounded px-2.5 lg:px-3 py-1.5 lg:py-2 text-xs lg:text-sm font-medium transition cursor-pointer ${
                   language === "bn" ? "bg-[#64C859] text-white" : "text-gray-700 hover:text-gray-900"
                 }`}
               >
@@ -98,7 +115,7 @@ export function LandingPage() {
               </button>
               <button
                 onClick={() => setLanguage("en")}
-                className={`rounded px-3 py-2 text-sm font-medium transition cursor-pointer ${
+                className={`rounded px-2.5 lg:px-3 py-1.5 lg:py-2 text-xs lg:text-sm font-medium transition cursor-pointer ${
                   language === "en" ? "bg-[#64C859] text-white" : "text-gray-700 hover:text-gray-900"
                 }`}
               >
@@ -107,16 +124,16 @@ export function LandingPage() {
             </div>
 
             <Link href="/login">
-              <Button size="lg" className="h-11 bg-[#64C859] hover:bg-[#64C859]/90 cursor-pointer shadow-lg hover:shadow-xl transition-all hover:scale-105 rounded px-6 text-base font-semibold">{t.getStarted}</Button>
+              <Button size="lg" className="h-10 lg:h-11 bg-[#64C859] hover:bg-[#64C859]/90 cursor-pointer shadow-lg hover:shadow-xl transition-all hover:scale-105 rounded px-4 lg:px-6 text-sm lg:text-base font-semibold">{t.getStarted}</Button>
             </Link>
           </nav>
 
           {/* Mobile Menu Button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 text-gray-700 hover:text-[#64C859] transition cursor-pointer"
+            className="md:hidden p-1.5 sm:p-2 text-gray-700 hover:text-[#64C859] transition cursor-pointer"
           >
-            {mobileMenuOpen ? <X className="size-6" /> : <Menu className="size-6" />}
+            {mobileMenuOpen ? <X className="size-5 sm:size-6" /> : <Menu className="size-5 sm:size-6" />}
           </button>
         </div>
 
@@ -158,7 +175,7 @@ export function LandingPage() {
       </header>
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-[#E8F5E6] via-[#D4EED1] to-white px-4 py-12 md:px-6 md:py-24"> 
+      <section className="relative overflow-hidden bg-gradient-to-b from-[#E8F5E6] via-[#D4EED1] to-white px-4 py-10 sm:py-12 sm:px-6 md:px-8 lg:px-6 md:py-16 lg:py-24 xl:py-28"> 
         {/* Decorative elements */}
         <div className="pointer-events-none absolute inset-0 opacity-20">
           <svg width="100%" height="100%" className="absolute">
@@ -173,17 +190,17 @@ export function LandingPage() {
         </div>
 
         <div className="relative mx-auto max-w-6xl text-center">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full border-2 border-[#64C859]/30 bg-[#64C859]/10 px-3 py-1.5 md:mb-6 md:px-4 md:py-2">
-            <Sparkles className="size-4 text-[#64C859] md:size-5" />
-            <span className="text-xs font-semibold text-gray-800 md:text-sm">{t.tagline}</span>
+          <div className="mb-3 sm:mb-4 md:mb-6 inline-flex items-center gap-1.5 sm:gap-2 rounded-full border-2 border-[#64C859]/30 bg-[#64C859]/10 px-2.5 sm:px-3 py-1 sm:py-1.5 md:px-4 md:py-2">
+            <Sparkles className="size-3.5 sm:size-4 text-[#64C859] md:size-5" />
+            <span className="text-[10px] sm:text-xs font-semibold text-gray-800 md:text-sm">{t.tagline}</span>
           </div>
           
-          <h1 className="mx-auto mb-4 max-w-4xl font-heading text-3xl font-bold leading-tight text-gray-900 md:mb-6 md:text-5xl lg:text-6xl">
+          <h1 className="mx-auto mb-3 sm:mb-4 md:mb-6 max-w-4xl font-heading text-2xl sm:text-3xl font-bold leading-tight text-gray-900 md:text-4xl lg:text-5xl xl:text-6xl">
             {t.heroTitle}
             <span className="text-[#64C859]">{t.heroHighlight}</span>
           </h1>
           
-          <p className="mx-auto mb-8 max-w-2xl text-base leading-relaxed text-gray-700 md:mb-16 md:text-lg">
+          <p className="mx-auto mb-6 sm:mb-8 md:mb-12 lg:mb-16 max-w-2xl text-sm sm:text-base leading-relaxed text-gray-700 md:text-lg px-2">
             {t.heroDesc}
           </p>
 
@@ -201,42 +218,42 @@ export function LandingPage() {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="bg-white px-4 py-12 md:px-6 md:py-24">
+      <section id="features" className="bg-white px-4 py-10 sm:py-12 sm:px-6 md:px-8 lg:px-6 md:py-16 lg:py-24">
         <div className="mx-auto max-w-6xl">
-          <div className="mb-8 text-center md:mb-16">
-            <h2 className="mb-3 font-heading text-3xl font-bold text-gray-900 md:mb-4 md:text-4xl">{t.whyIslamicGPT}</h2>
-            <p className="mx-auto max-w-2xl text-base text-gray-700 md:text-lg">
+          <div className="mb-6 sm:mb-8 md:mb-12 lg:mb-16 text-center">
+            <h2 className="mb-2 sm:mb-3 md:mb-4 font-heading text-2xl sm:text-3xl font-bold text-gray-900 md:text-4xl lg:text-4xl">{t.whyIslamicGPT}</h2>
+            <p className="mx-auto max-w-2xl text-sm sm:text-base text-gray-700 md:text-lg px-2">
               {t.whyDesc}
             </p>
           </div>
 
-          <div className="grid gap-6 md:grid-cols-3 md:gap-8">
-            <div className="rounded-2xl border-2 border-gray-200 bg-gradient-to-br from-[#E8F5E6] to-white p-8 shadow-lg transition hover:shadow-xl">
-              <div className="mb-4 inline-flex size-14 items-center justify-center rounded-xl bg-[#64C859]/20">
-                <MessageCircleQuestion className="size-7 text-[#64C859]" />
+          <div className="grid gap-4 sm:gap-6 md:grid-cols-3 md:gap-6 lg:gap-8">
+            <div className="rounded-xl sm:rounded-2xl border-2 border-gray-200 bg-gradient-to-br from-[#E8F5E6] to-white p-6 sm:p-8 shadow-lg transition hover:shadow-xl">
+              <div className="mb-3 sm:mb-4 inline-flex size-12 sm:size-14 items-center justify-center rounded-xl bg-[#64C859]/20">
+                <MessageCircleQuestion className="size-6 sm:size-7 text-[#64C859]" />
               </div>
-              <h3 className="mb-3 font-heading text-xl font-bold text-gray-900">{t.feature1Title}</h3>
-              <p className="text-gray-700">
+              <h3 className="mb-2 sm:mb-3 font-heading text-lg sm:text-xl font-bold text-gray-900">{t.feature1Title}</h3>
+              <p className="text-sm sm:text-base text-gray-700">
                 {t.feature1Desc}
               </p>
             </div>
 
-            <div className="rounded-2xl border-2 border-gray-200 bg-gradient-to-br from-[#E8F5E6] to-white p-8 shadow-lg transition hover:shadow-xl">
-              <div className="mb-4 inline-flex size-14 items-center justify-center rounded-xl bg-[#64C859]/20">
-                <BookOpen className="size-7 text-[#64C859]" />
+            <div className="rounded-xl sm:rounded-2xl border-2 border-gray-200 bg-gradient-to-br from-[#E8F5E6] to-white p-6 sm:p-8 shadow-lg transition hover:shadow-xl">
+              <div className="mb-3 sm:mb-4 inline-flex size-12 sm:size-14 items-center justify-center rounded-xl bg-[#64C859]/20">
+                <BookOpen className="size-6 sm:size-7 text-[#64C859]" />
               </div>
-              <h3 className="mb-3 font-heading text-xl font-bold text-gray-900">{t.feature2Title}</h3>
-              <p className="text-gray-700">
+              <h3 className="mb-2 sm:mb-3 font-heading text-lg sm:text-xl font-bold text-gray-900">{t.feature2Title}</h3>
+              <p className="text-sm sm:text-base text-gray-700">
                 {t.feature2Desc}
               </p>
             </div>
 
-            <div className="rounded-2xl border-2 border-gray-200 bg-gradient-to-br from-[#E8F5E6] to-white p-8 shadow-lg transition hover:shadow-xl">
-              <div className="mb-4 inline-flex size-14 items-center justify-center rounded-xl bg-[#64C859]/20">
-                <ShieldCheck className="size-7 text-[#64C859]" />
+            <div className="rounded-xl sm:rounded-2xl border-2 border-gray-200 bg-gradient-to-br from-[#E8F5E6] to-white p-6 sm:p-8 shadow-lg transition hover:shadow-xl">
+              <div className="mb-3 sm:mb-4 inline-flex size-12 sm:size-14 items-center justify-center rounded-xl bg-[#64C859]/20">
+                <ShieldCheck className="size-6 sm:size-7 text-[#64C859]" />
               </div>
-              <h3 className="mb-3 font-heading text-xl font-bold text-gray-900">{t.feature3Title}</h3>
-              <p className="text-gray-700">
+              <h3 className="mb-2 sm:mb-3 font-heading text-lg sm:text-xl font-bold text-gray-900">{t.feature3Title}</h3>
+              <p className="text-sm sm:text-base text-gray-700">
                 {t.feature3Desc}
               </p>
             </div>
@@ -245,42 +262,42 @@ export function LandingPage() {
       </section>
 
       {/* How It Works Section */}
-      <section id="how-it-works" className="bg-gradient-to-b from-white to-[#E8F5E6] px-4 py-12 md:px-6 md:py-24">
+      <section id="how-it-works" className="bg-gradient-to-b from-white to-[#E8F5E6] px-4 py-10 sm:py-12 sm:px-6 md:px-8 lg:px-6 md:py-16 lg:py-24">
         <div className="mx-auto max-w-6xl">
-          <div className="mb-8 text-center md:mb-16">
-            <h2 className="mb-3 font-heading text-3xl font-bold text-gray-900 md:mb-4 md:text-4xl">{t.howTitle}</h2>
-            <p className="mx-auto max-w-2xl text-base text-gray-700 md:text-lg">
+          <div className="mb-6 sm:mb-8 md:mb-12 lg:mb-16 text-center">
+            <h2 className="mb-2 sm:mb-3 md:mb-4 font-heading text-2xl sm:text-3xl font-bold text-gray-900 md:text-4xl lg:text-4xl">{t.howTitle}</h2>
+            <p className="mx-auto max-w-2xl text-sm sm:text-base text-gray-700 md:text-lg px-2">
               {t.howDesc}
             </p>
           </div>
 
-          <div className="grid gap-8 md:grid-cols-3 md:gap-12">
+          <div className="grid gap-6 sm:gap-8 md:grid-cols-3 md:gap-8 lg:gap-12">
             <div className="text-center">
-              <div className="mx-auto mb-6 flex size-16 items-center justify-center rounded-full bg-[#64C859] text-2xl font-bold text-white">
+              <div className="mx-auto mb-4 sm:mb-6 flex size-14 sm:size-16 items-center justify-center rounded-full bg-[#64C859] text-xl sm:text-2xl font-bold text-white">
                 {language === "bn" ? "১" : "1"}
               </div>
-              <h3 className="mb-3 font-heading text-xl font-bold text-gray-900">{t.step1}</h3>
-              <p className="text-gray-700">
+              <h3 className="mb-2 sm:mb-3 font-heading text-lg sm:text-xl font-bold text-gray-900">{t.step1}</h3>
+              <p className="text-sm sm:text-base text-gray-700">
                 {t.step1Desc}
               </p>
             </div>
 
             <div className="text-center">
-              <div className="mx-auto mb-6 flex size-16 items-center justify-center rounded-full bg-[#64C859] text-2xl font-bold text-white">
+              <div className="mx-auto mb-4 sm:mb-6 flex size-14 sm:size-16 items-center justify-center rounded-full bg-[#64C859] text-xl sm:text-2xl font-bold text-white">
                 {language === "bn" ? "২" : "2"}
               </div>
-              <h3 className="mb-3 font-heading text-xl font-bold text-gray-900">{t.step2}</h3>
-              <p className="text-gray-700">
+              <h3 className="mb-2 sm:mb-3 font-heading text-lg sm:text-xl font-bold text-gray-900">{t.step2}</h3>
+              <p className="text-sm sm:text-base text-gray-700">
                 {t.step2Desc}
               </p>
             </div>
 
             <div className="text-center">
-              <div className="mx-auto mb-6 flex size-16 items-center justify-center rounded-full bg-[#64C859] text-2xl font-bold text-white">
+              <div className="mx-auto mb-4 sm:mb-6 flex size-14 sm:size-16 items-center justify-center rounded-full bg-[#64C859] text-xl sm:text-2xl font-bold text-white">
                 {language === "bn" ? "৩" : "3"}
               </div>
-              <h3 className="mb-3 font-heading text-xl font-bold text-gray-900">{t.step3}</h3>
-              <p className="text-gray-700">
+              <h3 className="mb-2 sm:mb-3 font-heading text-lg sm:text-xl font-bold text-gray-900">{t.step3}</h3>
+              <p className="text-sm sm:text-base text-gray-700">
                 {t.step3Desc}
               </p>
             </div>
@@ -426,41 +443,42 @@ export function LandingPage() {
       </section> */}
 
       {/* Footer */}
-      <footer className="bg-gray-900 px-6 py-12 text-gray-300">
+      <footer className="bg-gray-900 px-4 py-10 sm:py-12 sm:px-6 md:px-8 lg:px-6 text-gray-300">
         <div className="mx-auto max-w-6xl">
-          <div className="grid gap-8 md:grid-cols-3">
+          <div className="grid gap-6 sm:gap-8 md:grid-cols-3">
             <div>
-              <div className="mb-4 flex items-center gap-3">
-                <BrandMark size={36} />
+              <div className="mb-3 sm:mb-4 flex items-center gap-2 sm:gap-3">
+                <BrandMark size={32} className="sm:hidden" />
+                <BrandMark size={36} className="hidden sm:block" />
                 <div className="leading-tight">
-                  <p className="text-xs text-gray-400">As-Sunnah Foundation</p>
-                  <p className="font-heading text-base font-bold text-white">Islamic GPT</p>
+                  <p className="text-[10px] sm:text-xs text-gray-400">As-Sunnah Foundation</p>
+                  <p className="font-heading text-sm sm:text-base font-bold text-white">Islamic GPT</p>
                 </div>
               </div>
-              <p className="text-sm text-gray-400">
-                বিশ্বাসযোগ্য ইসলামিক জ্ঞান যাচাইকৃত প্রবেশাধিকারে
+              <p className="text-xs sm:text-sm text-gray-400">
+                {t.footerTagline}
               </p>
             </div>
 
             <div>
-              <h4 className="mb-4 font-heading font-bold text-white">কোম্পানি</h4>
-              <ul className="space-y-2 text-sm">
-                <li><a href="#" className="transition hover:text-[#64C859]">আমাদের সম্পর্কে</a></li>
-                <li><a href="#" className="transition hover:text-[#64C859]">যোগাযোগ</a></li>
-                <li><a href="#" className="transition hover:text-[#64C859]">ব্লগ</a></li>
+              <h4 className="mb-3 sm:mb-4 font-heading font-bold text-white text-sm sm:text-base">{t.footerCompany}</h4>
+              <ul className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm">
+                <li><a href="#" className="transition hover:text-[#64C859]">{t.footerAbout}</a></li>
+                <li><a href="#" className="transition hover:text-[#64C859]">{t.footerContact}</a></li>
+                <li><a href="#" className="transition hover:text-[#64C859]">{t.footerBlog}</a></li>
               </ul>
             </div>
 
             <div>
-              <h4 className="mb-4 font-heading font-bold text-white">আইনি</h4>
-              <ul className="space-y-2 text-sm">
-                <li><a href="#" className="transition hover:text-[#64C859]">প্রাইভেসি পলিসি</a></li>
-                <li><a href="#" className="transition hover:text-[#64C859]">টার্মস অফ সার্ভিস</a></li>
+              <h4 className="mb-3 sm:mb-4 font-heading font-bold text-white text-sm sm:text-base">{t.footerLegal}</h4>
+              <ul className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm">
+                <li><a href="#" className="transition hover:text-[#64C859]">{t.footerPrivacy}</a></li>
+                <li><a href="#" className="transition hover:text-[#64C859]">{t.footerTerms}</a></li>
               </ul>
             </div>
           </div>
 
-          <div className="mt-12 border-t border-gray-800 pt-8 text-center text-sm">
+          <div className="mt-8 sm:mt-12 border-t border-gray-800 pt-6 sm:pt-8 text-center text-xs sm:text-sm">
             <p>© {new Date().getFullYear()} As-Sunnah Foundation. All rights reserved.</p>
           </div>
         </div>

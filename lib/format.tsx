@@ -34,6 +34,21 @@ const inlineFormatRules: InlineFormatRule[] = [
       </a>
     ),
   },
+  {
+    // Bare URLs not already wrapped in markdown link syntax
+    regex: /(?<!\()(https?:\/\/[^\s"'<>)\]]+)/,
+    render: (match, key) => (
+      <a
+        href={match[1]}
+        key={key}
+        rel="noreferrer noopener"
+        target="_blank"
+        className="inline-link"
+      >
+        {match[1]}
+      </a>
+    ),
+  },
 ]
 
 export function renderInlineText(text: string, keyPrefix = "inline"): ReactNode[] {

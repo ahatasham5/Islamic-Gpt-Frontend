@@ -17,8 +17,16 @@ export type MuftiCreate = {
 };
 
 export type AcceptInvite = {
-  email: string;
+  token: string;
   password: string;
+};
+
+export type AcceptInviteResponse = {
+  msg: string;
+};
+
+export type ResetPasswordResponse = {
+  msg: string;
 };
 
 export type UserLogin = {
@@ -117,6 +125,7 @@ export type ChatRequest = {
   book_id: string | null;
   top_k: number;
   session_id?: number;
+  web_search?: boolean;
 };
 
 export type ChatResponse = {
