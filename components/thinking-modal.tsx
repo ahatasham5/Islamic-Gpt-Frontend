@@ -5,7 +5,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
-import { percent } from "@/lib/format"
+import { percent, renderFormattedAnswer } from "@/lib/format"
 import type { Source } from "@/lib/types"
 import { FileText, Hash } from "lucide-react"
 
@@ -29,10 +29,23 @@ export function ThinkingModal({
                 {source.book_title}
               </DialogTitle>
               <div className="flex flex-wrap gap-2 pt-1">
-                <Badge variant="secondary" className="gap-1.5 font-normal">
-                  <FileText className="size-3.5 text-primary" />
-                  {source.file_name}
-                </Badge>
+                {/^https?:\/\//i.test(source.file_name) ? (
+                  <a
+                    href={source.file_name}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    className="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-600 underline underline-offset-2 hover:text-blue-800 transition-colors max-w-[260px] truncate dark:border-blue-800 dark:bg-blue-950 dark:text-blue-400 dark:hover:text-blue-200"
+                    title={source.file_name}
+                  >
+                    <svg className="size-3.5 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                    Visit site for more
+                  </a>
+                ) : (
+                  <Badge variant="secondary" className="gap-1.5 font-normal">
+                    <FileText className="size-3.5 text-primary" />
+                    {source.file_name}
+                  </Badge>
+                )}
                 <Badge variant="secondary" className="gap-1.5 font-normal">
                   <Hash className="size-3.5 text-primary" />
                   {source.page_number_str || source.page_number || "পৃষ্ঠা নেই"}
@@ -44,12 +57,12 @@ export function ThinkingModal({
             </DialogHeader>
 
             <div className="max-h-[55vh] overflow-y-auto p-5">
-              <pre
+              <div
                 dir="auto"
-                className="whitespace-pre-wrap rounded-xl border border-border bg-secondary/40 p-4 font-sans text-sm leading-loose text-foreground"
+                className="answer-prose whitespace-pre-wrap rounded-xl border border-border bg-secondary/40 p-4 font-sans text-sm leading-loose text-foreground"
               >
-                {source.context_text || source.section || "API থেকে কোনো অংশ পাওয়া যায়নি।"}
-              </pre>
+                {renderFormattedAnswer(source.context_text || source.section || "API থেকে কোনো অংশ পাওয়া যায়নি.")}
+              </div>
             </div>
           </>
         ) : null}
