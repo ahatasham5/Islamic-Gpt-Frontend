@@ -1,0 +1,24 @@
+name: Upstream
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Mirror + trigger CI
+      uses: SvanBoxel/gitlab-mirror-and-ci-action@master
+      with:
+        args: "https://gitlab.com/as-sunnah-foundation/islamic-gpt/islamic-gpt-frontend.git"
+      env:
+        FOLLOW_TAGS: "false"
+        FORCE_PUSH: "true"
+        GITLAB_HOSTNAME: "gitlab.com"
+        GITLAB_USERNAME: "assunnahfoundation"
+        GITLAB_PASSWORD: ${{ secrets.ASSUNNAH_FOUNDATION_GITLAB_ACCESS_TOKEN }}
+        GITLAB_PROJECT_ID: ${{ secrets.GITLAB_PROJECT_ID }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
