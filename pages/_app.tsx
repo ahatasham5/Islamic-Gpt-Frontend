@@ -18,7 +18,7 @@ const bengali = Noto_Sans_Bengali({
 
 // Arabic font — Amiri renders harakat clearly
 const amiri = Amiri({
-  variable: "--font-arabic",
+  variable: "--font-amiri",
   subsets: ["arabic", "latin"],
   weight: ["400", "700"],
   display: "swap",
