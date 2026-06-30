@@ -34,6 +34,14 @@ const translations = {
     step2Desc: "আপনার ইসলামিক প্রশ্ন বাংলা বা ইংরেজিতে লিখুন",
     step3: "উত্তর পান",
     step3Desc: "রেফারেন্স সহ বিস্তারিত এবং নির্ভরযোগ্য উত্তর পান",
+    footerTagline: "বিশ্বাসযোগ্য ইসলামিক জ্ঞান যাচাইকৃত প্রবেশাধিকারে",
+    footerCompany: "কোম্পানি",
+    footerAbout: "আমাদের সম্পর্কে",
+    footerContact: "যোগাযোগ",
+    footerBlog: "ব্লগ",
+    footerLegal: "আইনি",
+    footerPrivacy: "প্রাইভেসি পলিসি",
+    footerTerms: "টার্মস অফ সার্ভিস",
   },
   en: {
     tagline: "AI-Powered Islamic Knowledge Assistant",
@@ -61,6 +69,14 @@ const translations = {
     step2Desc: "Write your Islamic question in Bengali or English",
     step3: "Get Answers",
     step3Desc: "Receive detailed and reliable answers with references",
+    footerTagline: "Trusted Islamic knowledge through verified access",
+    footerCompany: "Company",
+    footerAbout: "About Us",
+    footerContact: "Contact",
+    footerBlog: "Blog",
+    footerLegal: "Legal",
+    footerPrivacy: "Privacy Policy",
+    footerTerms: "Terms of Service",
   },
 }
 
@@ -440,24 +456,24 @@ export function LandingPage() {
                 </div>
               </div>
               <p className="text-xs sm:text-sm text-gray-400">
-                বিশ্বাসযোগ্য ইসলামিক জ্ঞান যাচাইকৃত প্রবেশাধিকারে
+                {t.footerTagline}
               </p>
             </div>
 
             <div>
-              <h4 className="mb-3 sm:mb-4 font-heading font-bold text-white text-sm sm:text-base">কোম্পানি</h4>
+              <h4 className="mb-3 sm:mb-4 font-heading font-bold text-white text-sm sm:text-base">{t.footerCompany}</h4>
               <ul className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm">
-                <li><a href="#" className="transition hover:text-[#64C859]">আমাদের সম্পর্কে</a></li>
-                <li><a href="#" className="transition hover:text-[#64C859]">যোগাযোগ</a></li>
-                <li><a href="#" className="transition hover:text-[#64C859]">ব্লগ</a></li>
+                <li><a href="#" className="transition hover:text-[#64C859]">{t.footerAbout}</a></li>
+                <li><a href="#" className="transition hover:text-[#64C859]">{t.footerContact}</a></li>
+                <li><a href="#" className="transition hover:text-[#64C859]">{t.footerBlog}</a></li>
               </ul>
             </div>
 
             <div>
-              <h4 className="mb-3 sm:mb-4 font-heading font-bold text-white text-sm sm:text-base">আইনি</h4>
+              <h4 className="mb-3 sm:mb-4 font-heading font-bold text-white text-sm sm:text-base">{t.footerLegal}</h4>
               <ul className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm">
-                <li><a href="#" className="transition hover:text-[#64C859]">প্রাইভেসি পলিসি</a></li>
-                <li><a href="#" className="transition hover:text-[#64C859]">টার্মস অফ সার্ভিস</a></li>
+                <li><a href="#" className="transition hover:text-[#64C859]">{t.footerPrivacy}</a></li>
+                <li><a href="#" className="transition hover:text-[#64C859]">{t.footerTerms}</a></li>
               </ul>
             </div>
           </div>
