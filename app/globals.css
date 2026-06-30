@@ -6,11 +6,14 @@
 
 /*
   Bornomala Unicode Bengali font — self-hosted.
-  Place the font files in /public/fonts/:
+  Place the font files in /public/fonts/ to activate:
     - Bornomala.woff2
     - Bornomala.woff
-  Download from: https://bornomala.net or the official source.
+    - Bornomala-Bold.woff2
+    - Bornomala-Bold.woff
+  Until then, Noto Sans Bengali (loaded via next/font/google) is used as fallback.
 */
+/*
 @font-face {
   font-family: 'Bornomala';
   src:
@@ -32,6 +35,7 @@
   font-display: swap;
   unicode-range: U+0980-09FF, U+200C-200D, U+20B9, U+25CC, U+A8F1;
 }
+*/
 
 @keyframes ripple {
   0% {
@@ -51,11 +55,11 @@
 }
 
 @theme inline {
-  /* Bornomala for Bengali, Jakarta/Inter fallback for Latin */
-  --font-heading: 'Bornomala', var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
-  --font-sans: 'Bornomala', var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  /* Bornomala (self-hosted) → Noto Sans Bengali (Google Fonts fallback) → Latin fallback */
+  --font-heading: 'Bornomala', var(--font-bengali), var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Bornomala', var(--font-bengali), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
-  /* Arabic: Amiri (loaded via next/font), then traditional system Arabic fonts with clear harakat */
+  /* Arabic: KFGQPC/Traditional Arabic (system) → Amiri (Google Fonts, always available) */
   --font-arabic: var(--font-arabic), 'KFGQPC Uthman Taha Naskh', 'Traditional Arabic', 'Scheherazade New', 'Amiri', serif;
 
   --color-sidebar-ring: var(--sidebar-ring);
